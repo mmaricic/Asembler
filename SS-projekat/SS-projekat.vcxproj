@@ -142,11 +142,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ALUStackInstructionProcessor.h" />
+    <ClInclude Include="BaseProcessor.h" />
+    <ClInclude Include="DataFlowInstructionProcessor.h" />
+    <ClInclude Include="DataProcessor.h" />
+    <ClInclude Include="DirectiveProcessor.h" />
+    <ClInclude Include="ExpressionHandler.h" />
+    <ClInclude Include="InstructionProcessor.h" />
+    <ClInclude Include="LoadStoreInstructionProcessor.h" />
+    <ClInclude Include="MainProcessor.h" />
     <ClInclude Include="Parser.h" />
+    <ClInclude Include="State.h" />
+    <ClInclude Include="SymbolProcessor.h" />
+    <ClInclude Include="SymbolTable.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ALUStackInstructionProcessor.cpp" />
+    <ClCompile Include="BaseProcessor.cpp" />
+    <ClCompile Include="DataFlowInstructionProcessor.cpp" />
+    <ClCompile Include="DataProcessor.cpp" />
+    <ClCompile Include="DirectiveProcessor.cpp" />
+    <ClCompile Include="ExpressionHandler.cpp" />
+    <ClCompile Include="InstructionProcessor.cpp" />
+    <ClCompile Include="LoadStoreInstructionProcessor.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MainProcessor.cpp" />
     <ClCompile Include="Parser.cpp" />
+    <ClCompile Include="SymbolProcessor.cpp" />
+    <ClCompile Include="SymbolTable.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
