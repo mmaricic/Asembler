@@ -1,5 +1,7 @@
 #pragma once
 #include "BaseProcessor.h"
+#include "ExpressionHandler.h"
+
 class SymbolProcessor :
 	public BaseProcessor
 {

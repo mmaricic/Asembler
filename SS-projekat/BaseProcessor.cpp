@@ -5,6 +5,29 @@ string BaseProcessor::line = "";
 map<string, Section*> BaseProcessor::sections;
 
 
+void BaseProcessor::printExpToSection(int exp, int relFor, char relType, int size, int repetition)
+{
+	vector<string> res = ExpressionHandler::IntToHex(exp, size);
+	for (int i = 0; i < repetition; i++) {
+		if (relFor != -1)
+			insertRealocation(relType, relFor);
+		for (string num : res) {
+			locationCounter++;
+			sections[currentSection]->translatedProgram = sections[currentSection]->translatedProgram + num + (locationCounter % 16 == 0 ? "\n" : " ");
+		}
+
+	}
+}
+
+void BaseProcessor::insertRealocation(char relType, int relFor)
+{
+	realocation rel;
+	rel.offset = locationCounter;
+	rel.type = static_cast<Rel_Type> (relType);
+	rel.relativeTo = relFor;
+	sections[currentSection]->realocations.push_back(rel);
+}
+
 BaseProcessor::BaseProcessor()
 {
 	commonOpcodes["INTERMEDIATE"] = "100";

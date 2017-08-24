@@ -28,7 +28,7 @@ void SymbolTable::addLabels(vector<string> labels)
 		ret = symbols.insert(make_pair(lab, new TableRow(string("SYM"), lab, section->ordinal)));
 		if (ret.second == false) {
 			if(ret.first->second->flags != "G")
-			throw new exception()/*ErrorException("Double definition of label")*/;
+				throw HandleError("Label " + lab + " is already defined");
 		}
 		ret.first->second->value = locationCounter - section->startAddress;
 	}
@@ -38,7 +38,7 @@ void SymbolTable::addSymbol(string key, int section, int value)
 {
 	ret = symbols.insert(make_pair(key, new TableRow(string("SYM"), key, section)));
 	if (ret.second == false) {
-			throw new exception()/*ErrorException("Symbol already defined!")*/;
+		throw HandleError("Symbol " + key+ " is already defined!");
 	}
 	else
 		ret.first->second->value = value;
@@ -51,7 +51,7 @@ void SymbolTable::addGlobal(vector<string> keys)
 		ret = symbols.insert(make_pair(key, new TableRow(string("SYM"), key, 0)));
 		if (ret.second == false) {
 			if (ret.first->second->flags != "L")
-				throw new exception()/*ErrorException("Symbol twice declared as global")*/;
+				throw HandleError("Symbol " + key + " is already declared as global");
 		}
 		else {
 			ret.first->second->value = 0;
@@ -65,7 +65,7 @@ void SymbolTable::addSection(string key, string flags)
 
 	ret = symbols.insert(make_pair(key, new TableRow(string("SEG"), key)));
 	if (ret.second == false) {
-			throw new exception()/*ErrorException("Twice defined section")*/;
+		throw HandleError("Section "+ key+ " already exists");
 	}
 	ret.first->second->flags = flags;
 	ret.first->second->startAddress = ORG;

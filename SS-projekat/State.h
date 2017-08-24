@@ -34,8 +34,10 @@ struct TableRow {
 
 };
 
+enum Rel_Type { ABSOLUTE = 'A', PCRELATIVE = 'R' };
+
 struct realocation {
-	enum Rel_Type {ABSOLUTE = 'A', PCRELATIVE = 'R' };
+	
 	int offset;
 	Rel_Type type;
 	int relativeTo;

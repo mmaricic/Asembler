@@ -22,15 +22,15 @@ ALUStackInstructionProcessor::ALUStackInstructionProcessor()
 void ALUStackInstructionProcessor::resolvePassOne(string opcode)
 {
 	if (currentSection == "")
-		throw new exception(); //invalid code
+		throw HandleError("Invalid code - this must be inside of a section");
 	vector<string> args = Parser::getArguments(line);
 	if ((opcode == "PUSH" || opcode == "POP") && args.size() != 1)
-			throw new exception(); //invalid argument number
+			throw HandleError("Stack operations must have exactly 1 operand");
 	else if(opcode != "PUSH" && opcode != "POP" && args.size() != 3)
-		throw new exception(); //invalid argument number
+		throw HandleError("ALU operations must have exactly 3 operands");
 	for (string arg : args) 
 		if (addressMode(arg) != REGDIR)
-			throw new exception(); //invalid address mode
+			throw HandleError("Address mode must be Register direct");
 	
 	locationCounter += 4;
 }

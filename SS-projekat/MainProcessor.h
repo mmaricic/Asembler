@@ -19,6 +19,6 @@ public:
 	~MainProcessor();
 
 	void resolvePassOne(string opcode) override;
-	void resolvePassTwo(string opcode) =0;
+	void resolvePassTwo(string opcode) override;
 };
 

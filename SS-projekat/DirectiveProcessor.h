@@ -14,6 +14,6 @@ class DirectiveProcessor :
 public:
 	void resolvePassOne(string opcode) override;
 	void resolvePassTwo(string opcode) override;
-	~DirectiveProcessor();
+
 };
 

@@ -29,14 +29,14 @@ LoadStoreInstructionProcessor::LoadStoreInstructionProcessor()
 void LoadStoreInstructionProcessor::resolvePassOne(string opcode)
 {
 	if (currentSection == "")
-		throw new exception(); //invalid code
+		throw HandleError("Invalid code - this must be inside of a section");
 	string dataType = getDataType(opcode);
 	vector<string> args = Parser::getArguments(line);
 	if (args.size() != 2)
-		throw new exception(); //invalid arguments num
+		throw HandleError("LOAD and STORE instructions must have exactly 2 operands");
 
 	if (addressMode(args[0]) != REGDIR)
-		throw new exception(); //first argument must be regdir
+		throw HandleError("First argument in LOAD and STORE instructions must be in Register direct address mode");
 
 	calculateLC(args[1], opcode);
 }
@@ -46,19 +46,17 @@ void LoadStoreInstructionProcessor::resolvePassTwo(string opcode)
 {
 	string dataType = getDataType(opcode);
 	vector<string> args = Parser::getArguments(line);
-	AddressType adrtype = addressMode(args[1]);
 	int secondBytes;
-	int realocationFor = -100;
+	int realocationFor = -1;
 	char relType;
 	bool bytes8 = true;
 
-	string objProgram = bitsForAddresPart(adrtype, bytes8, args[1], secondBytes, realocationFor, relType);
+	string objProgram = bitsForAddresPart(bytes8, args[1], secondBytes, realocationFor, relType);
 	objProgram = objProgram + commonOpcodes[args[0]] + "00000" + commonOpcodes[dataType] + "000";
 	printInsToSection(objProgram, opcode);
 
-	if (realocationFor != -100) 
-		insertRealocation(relType, realocationFor);
-	if (bytes8)
-		printExpToSection(secondBytes);
+	if (bytes8) 
+		printExpToSection(secondBytes, realocationFor, relType);
+	
 	
 }

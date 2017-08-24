@@ -3,12 +3,11 @@
 class DataProcessor :
 	public BaseProcessor
 {
-public:
-	DataProcessor();
-	~DataProcessor();
-
 	map<string, int> dataSize;
 
+public:
+	DataProcessor();
+	
 	void resolvePassOne(string opcode) override;
 
 	void resolvePassTwo(string opcode) override;

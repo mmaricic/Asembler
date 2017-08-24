@@ -54,6 +54,9 @@
     <ClInclude Include="ExpressionHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HandleError.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Parser.cpp">

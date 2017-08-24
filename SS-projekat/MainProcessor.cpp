@@ -87,8 +87,8 @@ void MainProcessor::resolvePassOne(string opcode)
 				break;
 			string Opcode = Parser::getNextWord(line);
 			if (wasORG && Opcode[0] != '.')
-				throw new exception(); //after ORG must come section
-			
+				throw HandleError("After ORG can only be beginning of a section");
+
 			if (handlers.count(Opcode) == 1)
 				handlers[Opcode]->resolvePassOne(Opcode);
 			else  if (Opcode[0] == '.') {
@@ -97,21 +97,59 @@ void MainProcessor::resolvePassOne(string opcode)
 				if (handlers.count(section) == 1)
 					handlers[section]->resolvePassOne(Opcode);
 				else
-					throw new exception(); // invalid operation
+					throw HandleError("Undefined");
 			}
 			else
 				handlers["SymbolHandler"]->resolvePassOne(Opcode);
 		}
 		file.close();
 		if (!Parser::isEnd(line))
-			throw new exception(); //file doesn't have an end
+			throw HandleError("File is missing an .end directive!");
 		symTable->closeSection();
 	}
 	else 
-		throw new exception(); //invalid file
-	
+		throw HandleError("Invalid file - opening failed");
 	locationCounter = 0;
 	lineNumber = 0;
 	wasORG = false;
 	currentSection = "";
+}
+
+void MainProcessor::resolvePassTwo(string opcode)
+{
+	ifstream file;
+	file.open(opcode);
+	if (file.is_open()) {
+
+		while (getline(file, line) && !Parser::isEnd(line)) {
+			lineNumber++;
+			if (line.size() == 0)
+				continue;
+			transform(line.begin(), line.end(), line.begin(), ::toupper);
+			Parser::removeComments(line);
+			Parser::getLabels(line);
+			if (line.size() == 0)
+				continue;
+			if (Parser::isEnd(line))
+				break;
+			string Opcode = Parser::getNextWord(line);
+			if (handlers.count(Opcode) == 1)
+				handlers[Opcode]->resolvePassOne(Opcode);
+			else  if (Opcode[0] == '.') {
+				int pos = Opcode.find('.', 1);
+				string section = Opcode.substr(0, pos);
+				if (handlers.count(section) == 1)
+					handlers[section]->resolvePassOne(Opcode);
+				else
+					throw HandleError("Undefined");
+
+			}
+			else
+				handlers["SymbolHandler"]->resolvePassOne(Opcode);
+		}
+		file.close();
+	}
+	else
+		throw HandleError("Invalid file - opening failed");
+
 }

@@ -10,14 +10,10 @@ DataProcessor::DataProcessor()
 }
 
 
-DataProcessor::~DataProcessor()
-{
-}
-
 void DataProcessor::resolvePassOne(string opcode)
 {
 	if (currentSection == "")
-		throw new exception(); //invalid code
+		throw HandleError("Invalid code - this must be inside of a section");
 	vector<string> args = Parser::getArguments(line);
 	int number = 0;
 	for (string arg : args) {
@@ -25,8 +21,8 @@ void DataProcessor::resolvePassOne(string opcode)
 		if (dupPos == string::npos)
 			number++;
 		else {
-			//izracunaj konstantu caluclateConstant(arg.substr(0, dupPos))
-			//ako je konstanta, dodaj to na number, ako nije, baci gresku
+			int num = ExpressionHandler::calculateConstant(arg.substr(0, dupPos));
+			number += num;
 		}
 	}
 	number = number * dataSize[opcode];
@@ -42,19 +38,15 @@ void DataProcessor::resolvePassTwo(string opcode)
 		auto dupPos = arg.find("DUP");
 		if (dupPos != string::npos)
 		{
-			//izracunaj konstantu caluclateConstant(arg.substr(0, dupPos))
-			//dodeli to promenljivoj number
+			number = ExpressionHandler::calculateConstant(arg.substr(0, dupPos));
 			expression = arg.substr(dupPos + 3);
 		}
 		else
 			expression = arg;
-		/*izracunaj vrednost expression-a
-		for(int i = 0; i < number; i++){
-		ako je relokatibilno, napravi zapis o realokaciji
-		izracunatu vrednost odstampaj u sekciju u onoj velicini koja je u 
-		mapi u LITTLE ENDIAN formatu
-		}
-		*/
+		int relFor = -1;
+		char relType;
+		int result = ExpressionHandler::calculate(expression, relFor, relType);
+		printExpToSection(result, relFor, relType, dataSize[opcode], number);
 	}
 
 }

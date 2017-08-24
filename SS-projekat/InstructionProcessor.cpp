@@ -16,7 +16,7 @@ AddressType InstructionProcessor::addressMode(string arg)
 		else if(arg.find_first_of("+-") != string::npos)
 			return REGINDOFF;
 			
-		throw new exception(); //invalid address mode
+		throw HandleError("Invalid number size - to big for the given format");
 	}
 	return MEMDIR;
 }
@@ -29,7 +29,7 @@ void InstructionProcessor::calculateLC(string arg, string opcode)
 	{
 	case INTERMEDIATE:
 		if (opcode != "LOAD")
-			throw new exception(); //invalid address mode
+			throw HandleError("Instruction can't use intermediate address mode");
 		else
 			locationCounter += 8;
 		break;
@@ -59,8 +59,9 @@ void InstructionProcessor::printInsToSection(const string& objProgram, const str
 }
 
 
-string InstructionProcessor::bitsForAddresPart(AddressType adrtype, bool& bytes8, string arg, int& secondBytes, int& relFor, char& relType)
+string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& secondBytes, int& relFor, char& relType)
 {
+	AddressType adrtype = addressMode(arg);
 	string objProgram = commonOpcodes[addressModeToString(adrtype)];
 	string reg0 = "00000";
 	switch (adrtype)
@@ -80,7 +81,7 @@ string InstructionProcessor::bitsForAddresPart(AddressType adrtype, bool& bytes8
 	}
 	case INTERMEDIATE:
 	{
-		ExpressionHandler::calculate(arg.substr(1), secondBytes, relFor, relType);
+		secondBytes = ExpressionHandler::calculate(arg.substr(1), relFor, relType);
 		break;
 	}
 	case REGINDOFF:
@@ -88,7 +89,7 @@ string InstructionProcessor::bitsForAddresPart(AddressType adrtype, bool& bytes8
 		int strBegin = arg.find_first_of("+-");
 		int strEnd = arg.find_last_not_of("] \t");
 		int strRange = strEnd - strBegin + 1;
-		ExpressionHandler::calculate(arg.substr(strBegin, strRange), secondBytes, relFor, relType);
+		secondBytes = ExpressionHandler::calculate(arg.substr(strBegin, strRange), relFor, relType);
 		strBegin = arg.find_first_not_of("[ \t");
 		strEnd = arg.find_first_of("+- \t", strBegin);
 		strRange = strEnd - strBegin + 1;
@@ -97,7 +98,7 @@ string InstructionProcessor::bitsForAddresPart(AddressType adrtype, bool& bytes8
 	}
 	case MEMDIR:
 	{
-		ExpressionHandler::calculate(arg, secondBytes, relFor, relType);
+		secondBytes = ExpressionHandler::calculate(arg, relFor, relType);
 		break;
 	}
 	}
@@ -120,6 +121,6 @@ string InstructionProcessor::addressModeToString(AddressType adr)
 	case REGINDOFF:
 		return "REGINDOFF";
 	default:
-		throw new exception(); //wtf
+		throw HandleError("Unexpected error");
 	}
 }

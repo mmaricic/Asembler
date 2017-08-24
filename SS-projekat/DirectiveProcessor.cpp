@@ -25,7 +25,7 @@ void DirectiveProcessor::handleSection(string opcode)
 
 	}
 	else
-		throw new exception(); //"Invalid section"
+		throw HandleError("Invalid section name");
 
 	symTable->addSection(opcode, flags);
 	locationCounter = ORG;
@@ -38,23 +38,24 @@ void DirectiveProcessor::resolvePassOne(string opcode)
 {
 	if (opcode == ".GLOBAL") {
 		if (wasORG)
-			throw new exception(); //after ORG must be section
+			throw HandleError("After ORG can only be beginning of a section");
+
 		vector<string> args = Parser::getArguments(line);
 		if (args.size() == 0)
-			throw new exception();/*.global without arguments*/
+			throw HandleError(".global must have arguments");
+
 		symTable->addGlobal(args);
 		wasORG = false;
 	}
 	//SREDI ORG
 	else if (opcode == "ORG") {
 		if (wasORG)
-			throw new exception(); //after ORG must be section
+			throw HandleError("After ORG can only be beginning of a section");
 		vector<string> args = Parser::getArguments(line);
 		if (args.size() != 1)
-			throw new exception;//"invalid expression"
-		//izracunaj konstantu
+			throw HandleError("ORG must have exactly 1 paramater");
+		ORG = ExpressionHandler::calculateConstant(args[0]);
 		wasORG = true;
-		//dodeli org izracunatu vrednost
 	}
 	else {
 		if(!wasORG)
@@ -69,13 +70,8 @@ void DirectiveProcessor::resolvePassTwo(string opcode)
 	if (opcode != "ORG" && opcode != ".GLOBAL") {
 		TableRow* section = symTable->getSymbol(opcode);
 		if (section == nullptr)
-			throw new exception(); //something's wrong
+			throw HandleError("Unexpected error");
 		locationCounter = section->startAddress;
 		currentSection = section->name;
 	}
-}
-
-
-DirectiveProcessor::~DirectiveProcessor()
-{
 }

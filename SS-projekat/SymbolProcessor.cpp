@@ -6,14 +6,16 @@ void SymbolProcessor::resolvePassOne(string opcode)
 	string code = Parser::getNextWord(line);
 
 	if (code != "DEF")
-		throw new exception(); //unkown
+		throw HandleError("Undefined");
 
 	vector<string> expression = Parser::getArguments(line);
 	if (expression.size() != 1)
-		throw new exception(); //invalid expression format
+		throw HandleError("Constant symbol definition can have only 1 paramater");
 
-	//ovde izracunaj vrednost izraza expression[0]
-	//smesti u tabelu simbola ovaj simbol
+	int relFor = -1;
+	char relType;
+	int result = ExpressionHandler::calculate(expression[0], relFor, relType);
+	symTable->addSymbol(opcode, relFor, result);
 }
 
 void SymbolProcessor::resolvePassTwo(string opcode)
