@@ -7,11 +7,11 @@ static std::string currentSection = "";
 enum AddressType { INTERMEDIATE, REGDIR, REGIND, MEMDIR, REGINDOFF};
 static int ORG = 0;
 static bool wasORG = false;
+static unsigned int dollar = 0;
 
 static int lineNumber = 0;
 
 struct TableRow {
-	static unsigned int Ordinal;
 	std::string type;
 	int ordinal;
 	std::string name;
@@ -22,21 +22,35 @@ struct TableRow {
 	std::string flags;
 
 	TableRow(std::string atype, std::string aname, int asection) : type(atype), name(aname), section(asection) {
-		ordinal = ++Ordinal;
 		startAddress = 0;
 		flags = "L";
 	}
 
 	TableRow(std::string atype, std::string aname) : type(atype), name(aname) {
-		ordinal = ++Ordinal;
-		section = ordinal;
+	}
+
+	TableRow(std::string atype,int aordinal,std::string aname,int asection,int astartAddress, unsigned int avalue,std::string aflags) {
+		type = atype;
+		 ordinal = aordinal;
+		name = aname;
+		 section = asection;
+		 startAddress = astartAddress;
+		  size = 0;
+		  value = avalue;
+		flags = aflags;
+	}
+
+	void setOrdinal(unsigned int ord) {
+		ordinal = ord;
+		if (type == "SEG")
+			section = ord;
 	}
 
 };
 
 enum Rel_Type { ABSOLUTE = 'A', PCRELATIVE = 'R' };
 
-struct realocation {
+struct relocation {
 	
 	int offset;
 	Rel_Type type;
@@ -45,5 +59,5 @@ struct realocation {
 
 struct Section {
 	std::string translatedProgram;
-	std::vector<realocation> realocations;
+	std::vector<relocation> realocations;
 };

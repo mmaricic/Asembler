@@ -1,6 +1,6 @@
 #include "SymbolTable.h"
 
-unsigned int TableRow::Ordinal = 0;
+unsigned int SymbolTable::Ordinal = 0;
 SymbolTable* SymbolTable::instance = nullptr;
 
 SymbolTable * SymbolTable::getInstance()
@@ -17,7 +17,10 @@ TableRow * SymbolTable::getSymbol(string key)
 	if (symbols.count(key) > 0)
 		return symbols[key];
 
-		return nullptr;
+	if (key == "$")
+		return &TableRow(string("SYM"), -1, string("$"), symbols.find(currentSection)->second->ordinal, 0, dollar, string(""));
+
+	return nullptr;
 
 }
 
@@ -25,36 +28,51 @@ void SymbolTable::addLabels(vector<string> labels)
 {
 	TableRow* section = symbols.find(currentSection)->second;
 	for (string lab : labels) {
-		ret = symbols.insert(make_pair(lab, new TableRow(string("SYM"), lab, section->ordinal)));
+		TableRow* newsym = new TableRow(string("SYM"), lab, section->ordinal);
+		ret = symbols.insert(make_pair(lab, newsym));
 		if (ret.second == false) {
-			if(ret.first->second->flags != "G")
+			delete newsym;
+			if (ret.first->second->flags != "G")
 				throw HandleError("Label " + lab + " is already defined");
 		}
-		ret.first->second->value = locationCounter - section->startAddress;
+		else {
+			newsym->setOrdinal(++Ordinal);
+			sortedSymbols.insert(make_pair(Ordinal, newsym));
+		}
+		ret.first->second->value = locationCounter;
 	}
 }
 
 void SymbolTable::addSymbol(string key, int section, int value)
 {
-	ret = symbols.insert(make_pair(key, new TableRow(string("SYM"), key, section)));
+	TableRow* newsym = new TableRow(string("SYM"), key, section);
+	ret = symbols.insert(make_pair(key, newsym));
 	if (ret.second == false) {
+		delete newsym;
 		throw HandleError("Symbol " + key+ " is already defined!");
 	}
-	else
+	else {
+		newsym->setOrdinal(++Ordinal);
 		ret.first->second->value = value;
+		sortedSymbols.insert(make_pair(Ordinal, newsym));
+	}
 		
 }
 
 void SymbolTable::addGlobal(vector<string> keys)
 {
 	for (string key : keys) {
-		ret = symbols.insert(make_pair(key, new TableRow(string("SYM"), key, 0)));
+		TableRow* newsym = new TableRow(string("SYM"), key, 0);
+		ret = symbols.insert(make_pair(key, newsym));
 		if (ret.second == false) {
+			delete newsym;
 			if (ret.first->second->flags != "L")
 				throw HandleError("Symbol " + key + " is already declared as global");
 		}
 		else {
+			newsym->setOrdinal(++Ordinal);
 			ret.first->second->value = 0;
+			sortedSymbols.insert(make_pair(Ordinal, newsym));
 		}
 		ret.first->second->flags = "G";
 	}
@@ -62,14 +80,31 @@ void SymbolTable::addGlobal(vector<string> keys)
 void SymbolTable::addSection(string key, string flags)
 {
 	closeSection();
-
-	ret = symbols.insert(make_pair(key, new TableRow(string("SEG"), key)));
+	TableRow* newsym = new TableRow(string("SEG"), key);
+	ret = symbols.insert(make_pair(key,newsym));
 	if (ret.second == false) {
+		delete newsym;
 		throw HandleError("Section "+ key+ " already exists");
+	}
+	else {
+		newsym->setOrdinal(++Ordinal);
+		sortedSymbols.insert(make_pair(Ordinal, newsym));
 	}
 	ret.first->second->flags = flags;
 	ret.first->second->startAddress = ORG;
 
+
+}
+
+TableRow * SymbolTable::getSection(int ordinal)
+{
+	if (sortedSymbols.count(ordinal) > 0) {
+		TableRow* res = sortedSymbols[ordinal];
+		if (res->type == "SYM")
+			throw HandleError("Symbol must be section");
+		return res;
+	}
+	return nullptr;
 
 }
 

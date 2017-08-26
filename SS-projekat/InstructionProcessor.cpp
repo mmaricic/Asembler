@@ -64,6 +64,7 @@ string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& se
 	AddressType adrtype = addressMode(arg);
 	string objProgram = commonOpcodes[addressModeToString(adrtype)];
 	string reg0 = "00000";
+	relType = 'A';
 	switch (adrtype)
 	{
 	case REGDIR:
@@ -81,15 +82,38 @@ string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& se
 	}
 	case INTERMEDIATE:
 	{
-		secondBytes = ExpressionHandler::calculate(arg.substr(1), relFor, relType);
+		secondBytes = ExpressionHandler::calculate(arg.substr(1), relFor);
 		break;
 	}
 	case REGINDOFF:
-	{
+		if (arg[0] == '$') {
+			int strBegin = arg.find_first_not_of(" \t");
+			int strEnd = arg.find_last_not_of(" \t");
+			int strRange = strEnd - strBegin + 1;
+			string argument = arg.substr(arg.find_first_not_of(" \t"));
+			int num;
+			if (ExpressionHandler::isNumber(argument, num)) {
+				secondBytes = num - 4;
+				relType = 'R';
+				relFor = 0;
+			}
+			else {
+				TableRow* elem = symTable->getSymbol(argument);
+				if (elem == nullptr)
+					throw HandleError("Invalid argument with pc relative address mode");
+				if (elem->type == "SEG")
+					throw HandleError("Section can not be used as an argument!");
+				secondBytes = elem->value - 4;
+				relType = 'R';
+				relFor = elem->flags == "G" ? elem->ordinal : elem->section;
+			}
+			reg0 = commonOpcodes["PC"];
+		}
+		else{
 		int strBegin = arg.find_first_of("+-");
 		int strEnd = arg.find_last_not_of("] \t");
 		int strRange = strEnd - strBegin + 1;
-		secondBytes = ExpressionHandler::calculate(arg.substr(strBegin, strRange), relFor, relType);
+		secondBytes = ExpressionHandler::calculateConstant(arg.substr(strBegin, strRange));
 		strBegin = arg.find_first_not_of("[ \t");
 		strEnd = arg.find_first_of("+- \t", strBegin);
 		strRange = strEnd - strBegin + 1;
@@ -98,7 +122,7 @@ string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& se
 	}
 	case MEMDIR:
 	{
-		secondBytes = ExpressionHandler::calculate(arg, relFor, relType);
+		secondBytes = ExpressionHandler::calculate(arg, relFor);
 		break;
 	}
 	}

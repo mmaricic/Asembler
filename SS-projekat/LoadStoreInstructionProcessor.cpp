@@ -47,16 +47,16 @@ void LoadStoreInstructionProcessor::resolvePassTwo(string opcode)
 	string dataType = getDataType(opcode);
 	vector<string> args = Parser::getArguments(line);
 	int secondBytes;
-	int realocationFor = -1;
+	int relocationFor = -1;
 	char relType;
 	bool bytes8 = true;
 
-	string objProgram = bitsForAddresPart(bytes8, args[1], secondBytes, realocationFor, relType);
+	string objProgram = bitsForAddresPart(bytes8, args[1], secondBytes, relocationFor, relType);
 	objProgram = objProgram + commonOpcodes[args[0]] + "00000" + commonOpcodes[dataType] + "000";
 	printInsToSection(objProgram, opcode);
 
 	if (bytes8) 
-		printExpToSection(secondBytes, realocationFor, relType);
+		printExpToSection(secondBytes, relocationFor, relType);
 	
 	
 }

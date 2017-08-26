@@ -76,6 +76,7 @@ void MainProcessor::resolvePassOne(string opcode)
 			lineNumber++;
 			if (line.size() == 0)
 				continue;
+			dollar = locationCounter;
 			transform(line.begin(), line.end(), line.begin(), ::toupper);
 			Parser::removeComments(line);
 			vector<string> labels = Parser::getLabels(line);

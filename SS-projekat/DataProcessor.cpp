@@ -44,9 +44,8 @@ void DataProcessor::resolvePassTwo(string opcode)
 		else
 			expression = arg;
 		int relFor = -1;
-		char relType;
-		int result = ExpressionHandler::calculate(expression, relFor, relType);
-		printExpToSection(result, relFor, relType, dataSize[opcode], number);
+		int result = ExpressionHandler::calculate(expression, relFor);
+		printExpToSection(result, relFor, 'A', dataSize[opcode], number);
 	}
 
 }

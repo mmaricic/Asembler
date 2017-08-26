@@ -12,10 +12,9 @@ void SymbolProcessor::resolvePassOne(string opcode)
 	if (expression.size() != 1)
 		throw HandleError("Constant symbol definition can have only 1 paramater");
 
-	int relFor = -1;
-	char relType;
-	int result = ExpressionHandler::calculate(expression[0], relFor, relType);
-	symTable->addSymbol(opcode, relFor, result);
+	int section = -1;
+	int result = ExpressionHandler::calculate(expression[0], section);
+	symTable->addSymbol(opcode, section, result);
 }
 
 void SymbolProcessor::resolvePassTwo(string opcode)

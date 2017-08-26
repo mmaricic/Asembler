@@ -10,7 +10,7 @@ void BaseProcessor::printExpToSection(int exp, int relFor, char relType, int siz
 	vector<string> res = ExpressionHandler::IntToHex(exp, size);
 	for (int i = 0; i < repetition; i++) {
 		if (relFor != -1)
-			insertRealocation(relType, relFor);
+			insertRelocation(relType, relFor);
 		for (string num : res) {
 			locationCounter++;
 			sections[currentSection]->translatedProgram = sections[currentSection]->translatedProgram + num + (locationCounter % 16 == 0 ? "\n" : " ");
@@ -19,13 +19,13 @@ void BaseProcessor::printExpToSection(int exp, int relFor, char relType, int siz
 	}
 }
 
-void BaseProcessor::insertRealocation(char relType, int relFor)
+void BaseProcessor::insertRelocation(char relType, int relFor)
 {
-	realocation rel;
+	relocation rel;
 	rel.offset = locationCounter;
 	rel.type = static_cast<Rel_Type> (relType);
 	rel.relativeTo = relFor;
-	sections[currentSection]->realocations.push_back(rel);
+	sections[currentSection]->relocations.push_back(rel);
 }
 
 BaseProcessor::BaseProcessor()

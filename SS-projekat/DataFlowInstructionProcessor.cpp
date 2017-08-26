@@ -59,7 +59,7 @@ void DataFlowInstructionProcessor::resolvePassTwo(string opcode)
 	dataFlowType type = dataFlowOpcodes[opcode].type;
 	vector<string> args = Parser::getArguments(line);
 	int secondBytes;
-	int realocationFor = -1;
+	int relocationFor = -1;
 	char relType;
 	bool bytes8 = true;
 
@@ -67,11 +67,11 @@ void DataFlowInstructionProcessor::resolvePassTwo(string opcode)
 	{
 	case INT:
 	case UNCONDITIONAL:
-		objProgram = bitsForAddresPart(bytes8, args[0], secondBytes, realocationFor, relType);
+		objProgram = bitsForAddresPart(bytes8, args[0], secondBytes, relocationFor, relType);
 		objProgram += string(16, '0');
 		break;
 	case CONDITIONAL:
-		objProgram = bitsForAddresPart(bytes8, args[1], secondBytes, realocationFor, relType);
+		objProgram = bitsForAddresPart(bytes8, args[1], secondBytes, relocationFor, relType);
 		objProgram = objProgram + commonOpcodes[args[0]] + string(11, '0');
 		break;
 	default:
@@ -83,7 +83,7 @@ void DataFlowInstructionProcessor::resolvePassTwo(string opcode)
 
 	
 	if (bytes8) 
-		printExpToSection(secondBytes, realocationFor, relType);
+		printExpToSection(secondBytes, relocationFor, relType);
 }
 
 

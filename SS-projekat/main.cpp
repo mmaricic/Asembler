@@ -6,7 +6,7 @@ void main(int argc, char *argv[]) {
 	try {
 		int t;
 		char d;
-		int num = ExpressionHandler::calculate("-3+(2)*(4+(10)-2)/(4-2)", t, d);
+		int num = ExpressionHandler::calculate("-3+(2)*(4+(-10)-2)/(a-2)", t, d);
 		cout << num << endl;
 		/*string test = "010111110000001010100100";
 	vector<string> res = ExpressionHandler::binStringToHex(test);
