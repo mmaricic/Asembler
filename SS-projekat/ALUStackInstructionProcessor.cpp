@@ -2,23 +2,6 @@
 
 
 
-ALUStackInstructionProcessor::ALUStackInstructionProcessor()
-{
-	ALUStackOpcodes.insert(make_pair("PUSH","0x20"));
-	ALUStackOpcodes.insert(make_pair("POP", "0x21"));
-	ALUStackOpcodes.insert(make_pair("ADD", "0x30"));
-	ALUStackOpcodes.insert(make_pair("SUB", "0x31"));
-	ALUStackOpcodes.insert(make_pair("MUL", "0x32"));
-	ALUStackOpcodes.insert(make_pair("DIV", "0x33"));
-	ALUStackOpcodes.insert(make_pair("MOD", "0x34"));
-	ALUStackOpcodes.insert(make_pair("AND", "0x35"));
-	ALUStackOpcodes.insert(make_pair("OR", "0x36"));
-	ALUStackOpcodes.insert(make_pair("XOR", "0x37"));
-	ALUStackOpcodes.insert(make_pair("NOT", "0x38"));
-	ALUStackOpcodes.insert(make_pair("ASL", "0x39"));
-	ALUStackOpcodes.insert(make_pair("ASR", "0x3A"));
-}
-
 void ALUStackInstructionProcessor::resolvePassOne(string opcode)
 {
 	if (currentSection == "")

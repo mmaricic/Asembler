@@ -19,12 +19,6 @@ string LoadStoreInstructionProcessor::getDataType(string& opcode)
 	return dataType;
 }
 
-LoadStoreInstructionProcessor::LoadStoreInstructionProcessor()
-{
-	opcodes.insert(make_pair("LOAD", "0x10"));
-	opcodes.insert(make_pair("STORE", "0x11"));
-}
-
 
 void LoadStoreInstructionProcessor::resolvePassOne(string opcode)
 {

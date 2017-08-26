@@ -130,6 +130,37 @@ string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& se
 }
 
 
+InstructionProcessor::InstructionProcessor()
+{
+	instructionOpcodes.insert(make_pair("PUSH","20"));
+	instructionOpcodes.insert(make_pair("POP", "21"));
+	instructionOpcodes.insert(make_pair("ADD", "30"));
+	instructionOpcodes.insert(make_pair("SUB", "31"));
+	instructionOpcodes.insert(make_pair("MUL", "32"));
+	instructionOpcodes.insert(make_pair("DIV", "33"));
+	instructionOpcodes.insert(make_pair("MOD", "34"));
+	instructionOpcodes.insert(make_pair("AND", "35"));
+	instructionOpcodes.insert(make_pair("OR", "36"));
+	instructionOpcodes.insert(make_pair("XOR", "37"));
+	instructionOpcodes.insert(make_pair("NOT", "38"));
+	instructionOpcodes.insert(make_pair("ASL", "39"));
+	instructionOpcodes.insert(make_pair("ASR", "3A"));
+
+	instructionOpcodes.insert(make_pair("INT", "00"));
+	instructionOpcodes.insert(make_pair("RET", "01"));
+	instructionOpcodes.insert(make_pair("JMP", "02"));
+	instructionOpcodes.insert(make_pair("CALL", "03"));
+	instructionOpcodes.insert(make_pair("JZ", "04"));
+	instructionOpcodes.insert(make_pair("JNZ", "05"));
+	instructionOpcodes.insert(make_pair("JGZ", "06"));
+	instructionOpcodes.insert(make_pair("JGEZ", "07"));
+	instructionOpcodes.insert(make_pair("JLZ", "08"));
+	instructionOpcodes.insert(make_pair("JLEZ", "09"));
+
+	instructionOpcodes.insert(make_pair("LOAD", "10"));
+	instructionOpcodes.insert(make_pair("STORE", "11"));
+}
+
 string InstructionProcessor::addressModeToString(AddressType adr)
 {
 	switch (adr)

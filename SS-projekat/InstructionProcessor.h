@@ -7,7 +7,9 @@
 class InstructionProcessor :
 	public BaseProcessor
 {
+	map<string, string> instructionOpcodes;
 protected:
+	InstructionProcessor();
 	string addressModeToString(AddressType adr);
 	AddressType addressMode(string arg);
 	void calculateLC(string arg, string opcode);

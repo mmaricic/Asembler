@@ -3,16 +3,16 @@
 
 DataFlowInstructionProcessor::DataFlowInstructionProcessor()
 {
-	dataFlowOpcodes.insert(make_pair("INT", dataFlowValue(INT, "0x00")));
-	dataFlowOpcodes.insert(make_pair("RET", dataFlowValue(RET, "0x01")));
-	dataFlowOpcodes.insert(make_pair("JMP", dataFlowValue(UNCONDITIONAL, "0x02")));
-	dataFlowOpcodes.insert(make_pair("CALL", dataFlowValue(UNCONDITIONAL, "0x03")));
-	dataFlowOpcodes.insert(make_pair("JZ", dataFlowValue(CONDITIONAL, "0x04")));
-	dataFlowOpcodes.insert(make_pair("JNZ", dataFlowValue(CONDITIONAL, "0x05")));
-	dataFlowOpcodes.insert(make_pair("JGZ", dataFlowValue(CONDITIONAL, "0x06")));
-	dataFlowOpcodes.insert(make_pair("JGEZ", dataFlowValue(CONDITIONAL, "0x07")));
-	dataFlowOpcodes.insert(make_pair("JLZ", dataFlowValue(CONDITIONAL, "0x08")));
-	dataFlowOpcodes.insert(make_pair("JLEZ", dataFlowValue(CONDITIONAL, "0x09")));
+	dataFlowOpcodes.insert(make_pair("INT", INT));
+	dataFlowOpcodes.insert(make_pair("RET",RET));
+	dataFlowOpcodes.insert(make_pair("JMP", UNCONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("CALL", UNCONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("JZ", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("JNZ", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("JGZ", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("JGEZ", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("JLZ", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("JLEZ", CONDITIONAL));
 }
 
 void DataFlowInstructionProcessor::resolvePassOne(string opcode)
