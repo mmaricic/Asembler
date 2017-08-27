@@ -194,7 +194,7 @@ void MainProcessor::print(string filename)
 			stream.str("");
 		}
 		myfile << "<" << (*it).second->name << ">" << endl;
-		myfile << curr->translatedProgram << endl;
+		myfile << curr->translatedProgram << endl << endl;
 	}
 	myfile << "#end";
 	myfile.close();
