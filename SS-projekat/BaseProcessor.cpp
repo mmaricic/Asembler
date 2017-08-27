@@ -8,24 +8,26 @@ map<string, Section*> BaseProcessor::sections;
 void BaseProcessor::printExpToSection(int exp, int relFor, char relType, int size, int repetition)
 {
 	vector<string> res = ExpressionHandler::IntToHex(exp, size);
+	if (sections.count(State::currentSection) == 0)
+		sections.insert(make_pair(State::currentSection, new Section()));
 	for (int i = 0; i < repetition; i++) {
 		if (relFor != -1)
-			insertRelocation(relType, relFor);
+			insertreallocation(relType, relFor);
 		for (string num : res) {
-			locationCounter++;
-			sections[currentSection]->translatedProgram = sections[currentSection]->translatedProgram + num + (locationCounter % 16 == 0 ? "\n" : " ");
+			State::locationCounter++;
+			sections[State::currentSection]->translatedProgram = sections[State::currentSection]->translatedProgram + num + (State::locationCounter % 16 == 0 ? "\n" : " ");
 		}
 
 	}
 }
 
-void BaseProcessor::insertRelocation(char relType, int relFor)
+void BaseProcessor::insertreallocation(char relType, int relFor)
 {
-	relocation rel;
-	rel.offset = locationCounter;
+	reallocation rel;
+	rel.offset = State::locationCounter;
 	rel.type = static_cast<Rel_Type> (relType);
 	rel.relativeTo = relFor;
-	sections[currentSection]->relocations.push_back(rel);
+	sections[State::currentSection]->reallocations.push_back(rel);
 }
 
 BaseProcessor::BaseProcessor()
@@ -67,7 +69,12 @@ BaseProcessor::BaseProcessor()
 
 BaseProcessor::~BaseProcessor()
 {
-	delete symTable;
-	for (auto iter = sections.begin(); iter != sections.end(); iter++)
-		delete iter->second;
+	if (symTable != nullptr) {
+		symTable = nullptr;
+		for (auto iter = sections.begin(); iter != sections.end(); iter++) {
+			delete iter->second;
+			iter->second = nullptr;
+		}
+	}
+	
 }

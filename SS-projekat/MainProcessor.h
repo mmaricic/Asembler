@@ -20,5 +20,7 @@ public:
 
 	void resolvePassOne(string opcode) override;
 	void resolvePassTwo(string opcode) override;
+
+	void print(string filename);
 };
 

@@ -1,33 +1,18 @@
 #include <iostream>
-#include "Parser.h"
-#include "ExpressionHandler.h"
+#include "MainProcessor.h"
 
 void main(int argc, char *argv[]) {
 	try {
-		int t;
-		char d;
-		int num = ExpressionHandler::calculate("-3+(2)*(4+(-10)-2)/(a-2)", t, d);
-		cout << num << endl;
-		/*string test = "010111110000001010100100";
-	vector<string> res = ExpressionHandler::binStringToHex(test);
-	for (string r : res)
-		cout << r << " ";*/
-
-		/*vector<string> res = ExpressionHandler::IntToHex(300, 2);
-		for (string r : res)
-			cout << r << " ";
-		cout << endl;
-		res = ExpressionHandler::IntToHex(-300, 1);
-		for (string r : res)
-			cout << r << " ";*/
-
-		/*string line = "opcode";
-		transform(line.begin(), line.end(), line.begin(), ::toupper);
-		cout <<Parser::getNextWord(line) <<endl;
-		cout << line << endl;
-		vector<string> args = Parser::getArguments(line);
-		for (string arg : args)
-			cout << "\"" << arg << "\"" << endl;*/
+		if (argc != 3) {
+			cout << "Invalid number of command line arguments!";
+			return;
+		}
+		string inputFile = argv[1];
+		string otputFile = argv[2];
+		MainProcessor handler;
+		handler.resolvePassOne(inputFile);
+		handler.resolvePassTwo(inputFile);
+		handler.print(otputFile);
 	}
 	catch (HandleError e) {
 		cout << e;

@@ -61,17 +61,12 @@ int ExpressionHandler::calculateConstant(string exp)
 	if (firstPassCalculation(root))
 		return root->number;
 	
-	throw HandleError("Constant expression of this instruction can't bre relocatable");
+	throw HandleError("Constant expression of this instruction can't bre reallocatable");
 	
 }
 
 int ExpressionHandler::calculate(string exp, int & relFor)
 {
-	if (exp.find_first_of("?") != string::npos)
-		if (exp.find_first_not_of("? \t") != string::npos)
-			throw HandleError("Invalid expression");
-		else
-			return 0;
 	
 	node* root = infixToPostfix(exp);
 	
@@ -79,9 +74,9 @@ int ExpressionHandler::calculate(string exp, int & relFor)
 			return root->number;
 	
 	if (root->symbol[0] == '-')
-		throw HandleError("Relocation symbol can only be added to expression");
+		throw HandleError("reallocation symbol can only be added to expression");
 	if (root->symbol.find_first_of("+-", 1) != string::npos)
-		throw HandleError("There can only be one relocation symbol per expression");
+		throw HandleError("There can only be one reallocation symbol per expression");
 	
 
 	TableRow * symbol = symTable->getSymbol(root->symbol);
@@ -90,7 +85,8 @@ int ExpressionHandler::calculate(string exp, int & relFor)
 		throw HandleError("Sections can not be used in expressions!");
 	
 	relFor = symbol->flags == "G" ? symbol->ordinal : symbol->section;
-	 return symbol->value + root->number;
+	int val = symbol->value + symTable->getSection(symbol->section)->startAddress;
+	 return val + root->number;
 	
 }
 
@@ -108,7 +104,6 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 			i++;
 		}
 	}
-	cout << infix << endl;
 	stack<char> s;
 		int weight = -2;
 		i = 0;
@@ -236,19 +231,20 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 	{
 		switch (current) {
 		case 0:
-			if (before == 4)
-				return true;
-		case 4:
-			if (before == -2 || before == 2 || before == 1)
+			if (before == 3 || before == -2 || before == 2 || before == 1)
 				return true;
 			return false;
 		case 3:
-			if (before == 2 || before == 1)
+			if (before == -2 || before == 2 || before == 1 || before == 3)
+				return true;
+			return false;
+		case 4:
+			if (before == 0 || before == 4)
 				return true;
 			return false;
 		case 2:
 		case 1:
-			if (before == 3 || before == 0)
+			if (before == 4 || before == 0)
 				return true;
 			return false;
 		
@@ -276,16 +272,20 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 			}
 		}
 
-		i = left->symbol.find_first_of("-");
-		while (i != string::npos) {
-			auto j = left->symbol.find_first_of("+-", i + 1);
-			if (j == string::npos)
-				j = left->symbol.length();
-			TableRow* sym = symTable->getSymbol(left->symbol.substr(i + 1, j - i - 1));
-			if (left->symbol[i] == '-')
-				negative.push_back(sym);
-			else
-				positive.push_back(sym);
+		i = left->symbol.find_first_of("+-");
+		if (i == string::npos)
+			positive.push_back(symTable->getSymbol(left->symbol));
+		else {
+			while (i != string::npos) {
+				auto j = left->symbol.find_first_of("+-", i + 1);
+				if (j == string::npos)
+					j = left->symbol.length();
+				TableRow* sym = symTable->getSymbol(left->symbol.substr(i + 1, j - i - 1));
+				if (left->symbol[i] == '-')
+					negative.push_back(sym);
+				else
+					positive.push_back(sym);
+			}
 		}
 		int result = 0;
 		bool found = false;
@@ -301,21 +301,21 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 				else 
 					iter2++;
 			}
-			if (found)
+			if (found == true)
 				found = false;
 			else
 				iter1++;
 		}
 		string newExpression = "";
-		int i;
-		for (i = 0; i > (positive.size() < negative.size() ? positive.size() : negative.size()); i++)
-			newExpression = newExpression + "+" + positive[i]->name + "-" + negative[i]->name;
-		if (positive.size() > i)
-			for (int j = i; j > positive.size(); j++)
+		int k;
+		for (k = 0; k > (positive.size() < negative.size() ? positive.size() : negative.size()); k++)
+			newExpression = newExpression + "+" + (positive[k])->name + "-" + (negative[k])->name;
+		if (positive.size() > k)
+			for (int j = k; j > positive.size(); j++)
 				newExpression = newExpression + "+" + positive[j]->name;
 
-		for (; i > negative.size(); i++)
-			newExpression = newExpression + "-" + negative[i]->name;
+		for (; k > negative.size(); k++)
+			newExpression = newExpression + "-" + negative[k]->name;
 
 		left->symbol = newExpression;
 		return result;
@@ -392,9 +392,9 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 			}
 			TableRow* sym = symTable->getSymbol(val);
 			if (sym != nullptr) {
-				TableRow* getn;
-				if (sym->section == -1 || (sym->section > 0 && ((getn = symTable->getSection(sym->section)) != nullptr) && getn->flags.find_first_of("O") != string::npos)) {
-					number = sym->value;
+				TableRow* getn = symTable->getSection(sym->section);
+				if (sym->section == -1 || (sym->section > 0 && getn != nullptr && getn->flags.find_first_of("O") != string::npos)) {
+					number = sym->value + (getn == nullptr? 0 : getn->startAddress);
 					val = "";
 					return true;
 				}
@@ -435,7 +435,7 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 		}
 		else {
 			if (root->left->symbol != "" || root->right->symbol != "")
-				throw HandleError("Invalid expression - relocatable symbols can't be multiplied or divided by anything");
+				throw HandleError("Invalid expression - reallocatable symbols can't be multiplied or divided by anything");
 			
 			if (root->symbol == "*")
 				root->number = root->left->number * root->right->number;

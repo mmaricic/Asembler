@@ -17,7 +17,7 @@ protected:
 	static map<string, Section*> sections;
 
 	void printExpToSection(int exp, int relFor, char relType, int size = 4, int repetition = 1);
-	void insertRelocation(char relType, int relFor);
+	void insertreallocation(char relType, int relFor);
 
 public:
 	virtual void resolvePassOne(string opcode) =0;

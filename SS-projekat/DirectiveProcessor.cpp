@@ -10,26 +10,26 @@ string DirectiveProcessor::getSectionType(string name)
 void DirectiveProcessor::handleSection(string opcode)
 {
 	string section = getSectionType(opcode);
-	string flags = wasORG? "O": "";
+	string flags = State::wasORG? "O": "";
 	//UBACI FLEGOVE i za ORG
 	if (section == ".TEXT") {
-
+		flags += "APX";
 	}
 	else if (section == ".DATA") {
-
+		flags += "APW";
 	}
 	else if (section == ".RODATA") {
-
+		flags += "AP";
 	}
 	else if (section == ".BSS") {
-
+		flags += "AW";
 	}
 	else
 		throw HandleError("Invalid section name");
 
 	symTable->addSection(opcode, flags);
-	locationCounter = ORG;
-	currentSection = opcode;
+	State::locationCounter = State::ORG;
+	State::currentSection = opcode;
 
 }
 
@@ -37,7 +37,7 @@ void DirectiveProcessor::handleSection(string opcode)
 void DirectiveProcessor::resolvePassOne(string opcode)
 {
 	if (opcode == ".GLOBAL") {
-		if (wasORG)
+		if (State::wasORG)
 			throw HandleError("After ORG can only be beginning of a section");
 
 		vector<string> args = Parser::getArguments(line);
@@ -45,23 +45,23 @@ void DirectiveProcessor::resolvePassOne(string opcode)
 			throw HandleError(".global must have arguments");
 
 		symTable->addGlobal(args);
-		wasORG = false;
+		State::wasORG = false;
 	}
 	//SREDI ORG
 	else if (opcode == "ORG") {
-		if (wasORG)
+		if (State::wasORG)
 			throw HandleError("After ORG can only be beginning of a section");
 		vector<string> args = Parser::getArguments(line);
 		if (args.size() != 1)
 			throw HandleError("ORG must have exactly 1 paramater");
-		ORG = ExpressionHandler::calculateConstant(args[0]);
-		wasORG = true;
+		State::ORG = ExpressionHandler::calculateConstant(args[0]);
+		State::wasORG = true;
 	}
 	else {
-		if(!wasORG)
-			ORG = 0;
+		if(!State::wasORG)
+			State::ORG = 0;
 		handleSection(opcode);
-		wasORG = false;
+		State::wasORG = false;
 	}
 }
 
@@ -71,7 +71,7 @@ void DirectiveProcessor::resolvePassTwo(string opcode)
 		TableRow* section = symTable->getSymbol(opcode);
 		if (section == nullptr)
 			throw HandleError("Unexpected error");
-		locationCounter = section->startAddress;
-		currentSection = section->name;
+		State::locationCounter = section->startAddress;
+		State::currentSection = section->name;
 	}
 }

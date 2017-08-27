@@ -15,7 +15,11 @@ class SymbolTable
 	map<int, TableRow*> sortedSymbols;
 	pair<map<string, TableRow*>::iterator, bool> ret;
 	
-	SymbolTable() {}
+	SymbolTable() {
+		TableRow* newsym = new TableRow("SEG", 0, "UND", 0, 0, 0, "");
+		symbols.insert(make_pair("UND", newsym));
+		sortedSymbols.insert(make_pair(0, newsym));
+	}
 	SymbolTable(SymbolTable const&) = delete;
 
 public:
@@ -28,7 +32,7 @@ public:
 	void addSection(string key, string flags);
 	TableRow* getSection(int ordinal);
 	void closeSection();
-
+	map<int, TableRow*>* getAllElements() { return &sortedSymbols; }
 	~SymbolTable();
 };
 

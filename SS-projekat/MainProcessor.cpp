@@ -73,10 +73,10 @@ void MainProcessor::resolvePassOne(string opcode)
 	if (file.is_open()) {
 		
 		while (getline(file, line) && !Parser::isEnd(line)) {
-			lineNumber++;
+			State::lineNumber++;
 			if (line.size() == 0)
 				continue;
-			dollar = locationCounter;
+			State::dollar = State::locationCounter;
 			transform(line.begin(), line.end(), line.begin(), ::toupper);
 			Parser::removeComments(line);
 			vector<string> labels = Parser::getLabels(line);
@@ -87,7 +87,7 @@ void MainProcessor::resolvePassOne(string opcode)
 			if (Parser::isEnd(line))
 				break;
 			string Opcode = Parser::getNextWord(line);
-			if (wasORG && Opcode[0] != '.')
+			if (State::wasORG && Opcode[0] != '.')
 				throw HandleError("After ORG can only be beginning of a section");
 
 			if (handlers.count(Opcode) == 1)
@@ -110,10 +110,10 @@ void MainProcessor::resolvePassOne(string opcode)
 	}
 	else 
 		throw HandleError("Invalid file - opening failed");
-	locationCounter = 0;
-	lineNumber = 0;
-	wasORG = false;
-	currentSection = "";
+	State::locationCounter = 0;
+	State::lineNumber = 0;
+	State::wasORG = false;
+	State::currentSection = "";
 }
 
 void MainProcessor::resolvePassTwo(string opcode)
@@ -123,7 +123,7 @@ void MainProcessor::resolvePassTwo(string opcode)
 	if (file.is_open()) {
 
 		while (getline(file, line) && !Parser::isEnd(line)) {
-			lineNumber++;
+			State::lineNumber++;
 			if (line.size() == 0)
 				continue;
 			transform(line.begin(), line.end(), line.begin(), ::toupper);
@@ -135,22 +135,67 @@ void MainProcessor::resolvePassTwo(string opcode)
 				break;
 			string Opcode = Parser::getNextWord(line);
 			if (handlers.count(Opcode) == 1)
-				handlers[Opcode]->resolvePassOne(Opcode);
+				handlers[Opcode]->resolvePassTwo(Opcode);
 			else  if (Opcode[0] == '.') {
 				int pos = Opcode.find('.', 1);
 				string section = Opcode.substr(0, pos);
 				if (handlers.count(section) == 1)
-					handlers[section]->resolvePassOne(Opcode);
+					handlers[section]->resolvePassTwo(Opcode);
 				else
 					throw HandleError("Undefined");
 
 			}
 			else
-				handlers["SymbolHandler"]->resolvePassOne(Opcode);
+				handlers["SymbolHandler"]->resolvePassTwo(Opcode);
 		}
 		file.close();
 	}
 	else
 		throw HandleError("Invalid file - opening failed");
 
+}
+
+void MainProcessor::print(string filename)
+{
+	ofstream myfile;
+	myfile.open(filename);
+	myfile << "#TabelaSimbola" << endl;
+	map<int, TableRow*>* all = symTable->getAllElements();
+	std::stringstream stream;
+	
+	string exp = stream.str();
+	for (map<int, TableRow*>::iterator it = all->begin(); it != all->end(); ++it) {
+		if ((*it).second->type == "SEG") {
+			myfile << (*it).second->type << " " << (*it).second->ordinal << " " << (*it).second->name << " " << (*it).second->section << " 0x";
+			stream << setfill('0') << setw(2) << std::hex << (*it).second->startAddress;
+			myfile << stream.str() << " 0x"; 
+			stream.str("");
+			stream << setfill('0') << setw(2) << std::hex << (*it).second->size;
+			myfile << stream.str() << " " << (*it).second->flags << endl;
+			stream.str("");
+		}
+		else {
+			myfile << (*it).second->type << " " << (*it).second->ordinal << " " << (*it).second->name << " " << (*it).second->section << " 0x";
+			stream << setfill('0') << setw(2) << std::hex << (*it).second->value;
+			myfile << stream.str() << " " << (*it).second->flags << endl;
+			stream.str("");
+		}
+	}
+
+	myfile << endl;
+	for (map<int, TableRow*>::iterator it = all->begin(); it != all->end(); ++it) {
+		if ((*it).second->type == "SYM" || sections.count((*it).second->name) == 0)
+			continue;
+		Section* curr = sections[(*it).second->name];
+		myfile << "#rel" << (*it).second->name << endl;
+		for (reallocation rel : curr->reallocations) {
+			stream << setfill('0') << setw(4) << std::hex << rel.offset;
+			myfile << "0x" << stream.str() << " " << (char)rel.type << " " << rel.relativeTo << endl;
+			stream.str("");
+		}
+		myfile << "<" << (*it).second->name << ">" << endl;
+		myfile << curr->translatedProgram << endl;
+	}
+	myfile << "#end";
+	myfile.close();
 }

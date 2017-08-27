@@ -4,7 +4,7 @@
 
 void ALUStackInstructionProcessor::resolvePassOne(string opcode)
 {
-	if (currentSection == "")
+	if (State::currentSection == "")
 		throw HandleError("Invalid code - this must be inside of a section");
 	vector<string> args = Parser::getArguments(line);
 	if ((opcode == "PUSH" || opcode == "POP") && args.size() != 1)
@@ -15,7 +15,7 @@ void ALUStackInstructionProcessor::resolvePassOne(string opcode)
 		if (addressMode(arg) != REGDIR)
 			throw HandleError("Address mode must be Register direct");
 	
-	locationCounter += 4;
+	State::locationCounter += 4;
 }
 
 void ALUStackInstructionProcessor::resolvePassTwo(string opcode)

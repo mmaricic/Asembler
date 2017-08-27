@@ -164,6 +164,7 @@
     <ClCompile Include="DataProcessor.cpp" />
     <ClCompile Include="DirectiveProcessor.cpp" />
     <ClCompile Include="ExpressionHandler.cpp" />
+    <ClCompile Include="InitialState.cpp" />
     <ClCompile Include="InstructionProcessor.cpp" />
     <ClCompile Include="LoadStoreInstructionProcessor.cpp" />
     <ClCompile Include="main.cpp" />

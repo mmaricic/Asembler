@@ -31,15 +31,15 @@ void InstructionProcessor::calculateLC(string arg, string opcode)
 		if (opcode != "LOAD")
 			throw HandleError("Instruction can't use intermediate address mode");
 		else
-			locationCounter += 8;
+			State::locationCounter += 8;
 		break;
 	case REGDIR:
 	case REGIND:
-		locationCounter += 4;
+		State::locationCounter += 4;
 		break;
 	case MEMDIR:
 	case REGINDOFF:
-		locationCounter += 8;
+		State::locationCounter += 8;
 		break;
 	}
 }
@@ -47,15 +47,15 @@ void InstructionProcessor::calculateLC(string arg, string opcode)
 void InstructionProcessor::printInsToSection(const string& objProgram, const string& opcode)
 {
 	vector<string> bytes = ExpressionHandler::binStringToHex(objProgram);
-	if (sections.count(currentSection) == 0)
-		sections.insert(make_pair(currentSection, new Section()));
+	if (sections.count(State::currentSection) == 0)
+		sections.insert(make_pair(State::currentSection, new Section()));
+	State::locationCounter++;
+	sections[State::currentSection]->translatedProgram = sections[State::currentSection]->translatedProgram + instructionOpcodes[opcode] + (State::locationCounter % 16 == 0 ? "\n" : " ");
 	for (string byte : bytes) {
-		locationCounter++;
-		sections[currentSection]->translatedProgram = sections[currentSection]->translatedProgram + byte + (locationCounter % 16 == 0 ? "\n" : " ");
+		State::locationCounter++;
+		sections[State::currentSection]->translatedProgram = sections[State::currentSection]->translatedProgram + byte + (State::locationCounter % 16 == 0 ? "\n" : " ");
 	}
-	locationCounter++;
-	sections[currentSection]->translatedProgram = sections[currentSection]->translatedProgram + commonOpcodes[opcode] + (locationCounter % 16 == 0 ? "\n" : " ");
-
+	
 }
 
 
@@ -87,39 +87,61 @@ string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& se
 	}
 	case REGINDOFF:
 		if (arg[0] == '$') {
-			int strBegin = arg.find_first_not_of(" \t");
-			int strEnd = arg.find_last_not_of(" \t");
+			int strBegin = arg.find_first_not_of("$ \t");
+			int strEnd = arg.find_last_not_of("$ \t");
 			int strRange = strEnd - strBegin + 1;
-			string argument = arg.substr(arg.find_first_not_of(" \t"));
+			string argument = arg.substr(strBegin, strRange);
 			int num;
+			TableRow* elem = symTable->getSymbol(argument);
 			if (ExpressionHandler::isNumber(argument, num)) {
-				secondBytes = num - 4;
-				relType = 'R';
-				relFor = 0;
+				if (elem != nullptr) {
+					if (elem->section != -1) {
+						if (symTable->getSection(elem->section)->flags.find('O') != string::npos)
+							secondBytes = num - 8 - State::locationCounter;
+						else {
+							secondBytes = elem->value + symTable->getSection(elem->section)->startAddress - 4;
+							relType = 'R';
+							relFor = elem->flags == "G" ? elem->ordinal : elem->section;
+						}
+					}
+					else {
+						secondBytes = elem->value - 4;
+						relType = 'R';
+						relFor = elem->ordinal;
+					}
+				}
+				else
+					throw HandleError("You can't have pcrel address mode with constant number!");
+
 			}
 			else {
-				TableRow* elem = symTable->getSymbol(argument);
 				if (elem == nullptr)
 					throw HandleError("Invalid argument with pc relative address mode");
 				if (elem->type == "SEG")
 					throw HandleError("Section can not be used as an argument!");
-				secondBytes = elem->value - 4;
-				relType = 'R';
-				relFor = elem->flags == "G" ? elem->ordinal : elem->section;
+				TableRow* sec = symTable->getSymbol(State::currentSection);
+				if (elem->section == sec->ordinal)
+					secondBytes = elem->value + sec->startAddress - 8 - State::locationCounter;
+				else {
+					secondBytes = elem->value + symTable->getSection(elem->section)->startAddress - 4;
+					relType = 'R';
+					relFor = elem->flags == "G" ? elem->ordinal : elem->section;
+				}
 			}
 			reg0 = commonOpcodes["PC"];
 		}
-		else{
-		int strBegin = arg.find_first_of("+-");
-		int strEnd = arg.find_last_not_of("] \t");
-		int strRange = strEnd - strBegin + 1;
-		secondBytes = ExpressionHandler::calculateConstant(arg.substr(strBegin, strRange));
-		strBegin = arg.find_first_not_of("[ \t");
-		strEnd = arg.find_first_of("+- \t", strBegin);
-		strRange = strEnd - strBegin + 1;
-		reg0 = arg.substr(strBegin, strRange);
+		else {
+			int strBegin = arg.find_first_of("+-");
+			int strEnd = arg.find_last_not_of("] \t");
+			int strRange = strEnd - strBegin + 1;
+			secondBytes = ExpressionHandler::calculate(arg.substr(strBegin, strRange), relFor);
+			strBegin = arg.find_first_not_of("[ \t");
+			strEnd = arg.find_first_of("+- \t", strBegin);
+			strRange = strEnd - strBegin + 1;
+			reg0 = arg.substr(strBegin, strRange);
+		}
 		break;
-	}
+	
 	case MEMDIR:
 	{
 		secondBytes = ExpressionHandler::calculate(arg, relFor);

@@ -1,0 +1,20 @@
+#TabelaSimbola
+SEG 0 UND 0 0x00 0x00 
+SEG 1 .DATA 1 0x00 0x04 APW
+SYM 2 A 1 0x00 L
+SEG 3 .TEXT 3 0x20 0x28 OAPX
+SYM 4 X 3 0x18 L
+
+#rel.DATA
+0x0000 A 1
+<.DATA>
+00 00 00 00 
+#rel.TEXT
+0x0024 A 1
+0x002c A 1
+0x0034 R 1
+<.TEXT>
+10 c0 08 00 00 00 00 00 10 80 10 00 00 00 00 00
+10 f1 18 00 fc ff ff ff 04 c0 00 00 38 00 00 00
+04 f1 00 00 f0 ff ff ff 
+#end

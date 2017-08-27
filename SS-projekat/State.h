@@ -2,14 +2,17 @@
 #include <string>
 #include <vector>
 
-static unsigned int locationCounter = 0;
-static std::string currentSection = "";
-enum AddressType { INTERMEDIATE, REGDIR, REGIND, MEMDIR, REGINDOFF};
-static int ORG = 0;
-static bool wasORG = false;
-static unsigned int dollar = 0;
+struct State {
+	static unsigned int locationCounter;
+	static std::string currentSection;
+	static int ORG;
+	static bool wasORG;
+	static unsigned int dollar;
 
-static int lineNumber = 0;
+	static int lineNumber;
+};
+
+enum AddressType { INTERMEDIATE, REGDIR, REGIND, MEMDIR, REGINDOFF };
 
 struct TableRow {
 	std::string type;
@@ -50,7 +53,7 @@ struct TableRow {
 
 enum Rel_Type { ABSOLUTE = 'A', PCRELATIVE = 'R' };
 
-struct relocation {
+struct reallocation {
 	
 	int offset;
 	Rel_Type type;
@@ -59,5 +62,5 @@ struct relocation {
 
 struct Section {
 	std::string translatedProgram;
-	std::vector<relocation> realocations;
+	std::vector<reallocation> reallocations;
 };

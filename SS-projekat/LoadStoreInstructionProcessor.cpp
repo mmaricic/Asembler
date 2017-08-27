@@ -22,7 +22,7 @@ string LoadStoreInstructionProcessor::getDataType(string& opcode)
 
 void LoadStoreInstructionProcessor::resolvePassOne(string opcode)
 {
-	if (currentSection == "")
+	if (State::currentSection == "")
 		throw HandleError("Invalid code - this must be inside of a section");
 	string dataType = getDataType(opcode);
 	vector<string> args = Parser::getArguments(line);
@@ -41,16 +41,16 @@ void LoadStoreInstructionProcessor::resolvePassTwo(string opcode)
 	string dataType = getDataType(opcode);
 	vector<string> args = Parser::getArguments(line);
 	int secondBytes;
-	int relocationFor = -1;
+	int reallocationFor = -1;
 	char relType;
 	bool bytes8 = true;
 
-	string objProgram = bitsForAddresPart(bytes8, args[1], secondBytes, relocationFor, relType);
+	string objProgram = bitsForAddresPart(bytes8, args[1], secondBytes, reallocationFor, relType);
 	objProgram = objProgram + commonOpcodes[args[0]] + "00000" + commonOpcodes[dataType] + "000";
 	printInsToSection(objProgram, opcode);
 
 	if (bytes8) 
-		printExpToSection(secondBytes, relocationFor, relType);
+		printExpToSection(secondBytes, reallocationFor, relType);
 	
 	
 }

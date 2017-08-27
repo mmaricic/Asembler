@@ -18,7 +18,7 @@ TableRow * SymbolTable::getSymbol(string key)
 		return symbols[key];
 
 	if (key == "$")
-		return &TableRow(string("SYM"), -1, string("$"), symbols.find(currentSection)->second->ordinal, 0, dollar, string(""));
+		return &TableRow(string("SYM"), -1, string("$"), symbols.find(State::currentSection)->second->ordinal, 0, State::dollar, string(""));
 
 	return nullptr;
 
@@ -26,7 +26,7 @@ TableRow * SymbolTable::getSymbol(string key)
 
 void SymbolTable::addLabels(vector<string> labels)
 {
-	TableRow* section = symbols.find(currentSection)->second;
+	TableRow* section = symbols.find(State::currentSection)->second;
 	for (string lab : labels) {
 		TableRow* newsym = new TableRow(string("SYM"), lab, section->ordinal);
 		ret = symbols.insert(make_pair(lab, newsym));
@@ -39,7 +39,7 @@ void SymbolTable::addLabels(vector<string> labels)
 			newsym->setOrdinal(++Ordinal);
 			sortedSymbols.insert(make_pair(Ordinal, newsym));
 		}
-		ret.first->second->value = locationCounter;
+		ret.first->second->value = State::locationCounter - section->startAddress;
 	}
 }
 
@@ -91,7 +91,7 @@ void SymbolTable::addSection(string key, string flags)
 		sortedSymbols.insert(make_pair(Ordinal, newsym));
 	}
 	ret.first->second->flags = flags;
-	ret.first->second->startAddress = ORG;
+	ret.first->second->startAddress = State::ORG;
 
 
 }
@@ -110,15 +110,18 @@ TableRow * SymbolTable::getSection(int ordinal)
 
 void SymbolTable::closeSection()
 {
-	if (!currentSection.empty()) {
-		TableRow* current = symbols.find(currentSection)->second;
-		current->size = locationCounter - current->startAddress;
+	if (!State::currentSection.empty()) {
+		TableRow* current = symbols.find(State::currentSection)->second;
+		current->size = State::locationCounter - current->startAddress;
 	}
 }
 
 SymbolTable::~SymbolTable()
 {
-	for (auto itr = symbols.begin(); itr != symbols.end(); itr++)
-		delete itr->second;
+	for (auto itr = symbols.begin(); itr != symbols.end(); itr++) {
+		if(itr->second != nullptr)
+			delete itr->second;
+		itr->second = nullptr;
+	}
 	
 }

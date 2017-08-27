@@ -17,21 +17,21 @@ DataFlowInstructionProcessor::DataFlowInstructionProcessor()
 
 void DataFlowInstructionProcessor::resolvePassOne(string opcode)
 {
-	if (currentSection == "")
+	if (State::currentSection == "")
 		throw HandleError("Invalid code - this must be inside of a section");
-	dataFlowType type = dataFlowOpcodes[opcode].type;
+	dataFlowType type = dataFlowOpcodes[opcode];
 	vector<string> args = Parser::getArguments(line);
 	switch (type)
 	{
 	case INT:
 		if (args.size() != 1 || (args.size() == 1 && addressMode(args[0]) != REGDIR))
 			throw HandleError("Invalid format for INT instruction - it must have exactly 1 operand and it must be register direct address mode");
-		locationCounter += 4;
+		State::locationCounter += 4;
 		break;
 	case RET:
 		if (args.size() != 0)
 			throw HandleError("RET instruction can't have arguments");		
-		locationCounter += 4;
+		State::locationCounter += 4;
 		break;
 	case CONDITIONAL:
 		if (args.size() != 2 || (args.size() == 2 && addressMode(args[0]) != REGDIR))
@@ -56,10 +56,10 @@ void DataFlowInstructionProcessor::resolvePassTwo(string opcode)
 		return;
 	}
 
-	dataFlowType type = dataFlowOpcodes[opcode].type;
+	dataFlowType type = dataFlowOpcodes[opcode];
 	vector<string> args = Parser::getArguments(line);
 	int secondBytes;
-	int relocationFor = -1;
+	int reallocationFor = -1;
 	char relType;
 	bool bytes8 = true;
 
@@ -67,11 +67,11 @@ void DataFlowInstructionProcessor::resolvePassTwo(string opcode)
 	{
 	case INT:
 	case UNCONDITIONAL:
-		objProgram = bitsForAddresPart(bytes8, args[0], secondBytes, relocationFor, relType);
+		objProgram = bitsForAddresPart(bytes8, args[0], secondBytes, reallocationFor, relType);
 		objProgram += string(16, '0');
 		break;
 	case CONDITIONAL:
-		objProgram = bitsForAddresPart(bytes8, args[1], secondBytes, relocationFor, relType);
+		objProgram = bitsForAddresPart(bytes8, args[1], secondBytes, reallocationFor, relType);
 		objProgram = objProgram + commonOpcodes[args[0]] + string(11, '0');
 		break;
 	default:
@@ -83,7 +83,7 @@ void DataFlowInstructionProcessor::resolvePassTwo(string opcode)
 
 	
 	if (bytes8) 
-		printExpToSection(secondBytes, relocationFor, relType);
+		printExpToSection(secondBytes, reallocationFor, relType);
 }
 
 
