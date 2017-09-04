@@ -85,7 +85,7 @@ int ExpressionHandler::calculate(string exp, int & relFor)
 		throw HandleError("Sections can not be used in expressions!");
 	
 	relFor = symbol->flags == "G" ? symbol->ordinal : symbol->section;
-	int val = symbol->value + symTable->getSection(symbol->section)->startAddress;
+	int val = symbol->flags == "G" ? 0 : symbol->value + symTable->getSection(symbol->section)->startAddress;
 	 return val + root->number;
 	
 }
@@ -251,41 +251,48 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 		}
 	}
 
-	int ExpressionHandler::subtractSymbols(node * left, node * right)
+	int ExpressionHandler::calculateSymbols(node * left, node * right, bool subtract)
 	{
 		vector<TableRow*> positive;
 		vector<TableRow*> negative;
 		auto i = right->symbol.find_first_of("+-");
+		bool first;
 		if (i == string::npos)
-			negative.push_back(symTable->getSymbol(right->symbol));
+			(subtract ? negative : positive).push_back(symTable->getSymbol(right->symbol));
 		else {
-			while (i != string::npos) {
+			if (right->symbol[0] != '+' && right->symbol[0] != '-')
+				i = -1;
+			do{
+
 				auto j = right->symbol.find_first_of("+-", i + 1);
 				if (j == string::npos)
 					j = left->symbol.length();
 				TableRow* sym = symTable->getSymbol(right->symbol.substr(i + 1, j - i - 1));
-				if (right->symbol[i] == '-')
-					positive.push_back(sym);
+				if (i != -1 && right->symbol[i] == '-')
+					(subtract ? positive : negative).push_back(sym);
 				else
-					negative.push_back(sym);
+					(subtract ? negative : positive).push_back(sym);
 				i = right->symbol.find_first_of("+-", i + 1);
-			}
+			} while (i != string::npos);
 		}
 
 		i = left->symbol.find_first_of("+-");
 		if (i == string::npos)
 			positive.push_back(symTable->getSymbol(left->symbol));
 		else {
-			while (i != string::npos) {
+			if (left->symbol[0] != '+' && left->symbol[0] != '-')
+				i = -1;
+			do {
 				auto j = left->symbol.find_first_of("+-", i + 1);
 				if (j == string::npos)
 					j = left->symbol.length();
 				TableRow* sym = symTable->getSymbol(left->symbol.substr(i + 1, j - i - 1));
-				if (left->symbol[i] == '-')
+				if (i != -1 && left->symbol[i] == '-')
 					negative.push_back(sym);
 				else
 					positive.push_back(sym);
-			}
+				i = left->symbol.find_first_of("+-", i + 1);
+			} while (i != string::npos);
 		}
 		int result = 0;
 		bool found = false;
@@ -308,15 +315,16 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 		}
 		string newExpression = "";
 		int k;
-		for (k = 0; k > (positive.size() < negative.size() ? positive.size() : negative.size()); k++)
+		for (k = 0; k < (positive.size() < negative.size() ? positive.size() : negative.size()); k++)
 			newExpression = newExpression + "+" + (positive[k])->name + "-" + (negative[k])->name;
 		if (positive.size() > k)
-			for (int j = k; j > positive.size(); j++)
+			for (int j = k; j < positive.size(); j++)
 				newExpression = newExpression + "+" + positive[j]->name;
 
 		for (; k > negative.size(); k++)
 			newExpression = newExpression + "-" + negative[k]->name;
-
+		if (newExpression[0] == '+')
+			newExpression = newExpression.substr(1);
 		left->symbol = newExpression;
 		return result;
 	}
@@ -362,14 +370,14 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 		int base = 10;
 		if(val[0] == '0'){
 			switch (val[1]) {
-			case 'B': 
+			case 'b': 
 				allowed = "01";
 				start = 2;
 				base = 2;
 				break;
 			
-			case 'X': 
-				allowed = "0123456789ABCDEF";
+			case 'x': 
+				allowed = "0123456789abcdef";
 				start = 2;
 				base = 16;
 				break;
@@ -419,6 +427,8 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 			root->number = root->left->number + root->right->number;
 			if (root->left->symbol == "" || root->right->symbol == "")
 				root->symbol = root->left->symbol + root->right->symbol;
+			else if (root->left->symbol.find("-") != string::npos || root->right->symbol.find("-") != string::npos)
+				calculateSymbols(root->left, root->right, false);
 			else
 				root->symbol = root->left->symbol + root->symbol + root->right->symbol;
 		}
@@ -428,7 +438,7 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 			if (root->right->symbol == "")
 				root->symbol = root->left->symbol;
 			else {
-				int res = subtractSymbols(root->left, root->right);
+				int res = calculateSymbols(root->left, root->right, true);
 				root->number += res;
 				root->symbol = root->left->symbol;
 			}
@@ -443,6 +453,7 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 			else if (root->symbol == "/") {
 				root->number = root->left->number / root->right->number;
 			}
+			root->symbol = "";
 		}
 			delete root->left;
 			delete root->right;

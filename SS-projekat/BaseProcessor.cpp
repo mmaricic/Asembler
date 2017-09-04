@@ -15,7 +15,7 @@ void BaseProcessor::printExpToSection(int exp, int relFor, char relType, int siz
 			insertreallocation(relType, relFor);
 		for (string num : res) {
 			State::locationCounter++;
-			sections[State::currentSection]->translatedProgram = sections[State::currentSection]->translatedProgram + num + (State::locationCounter % 16 == 0 ? "\n" : " ");
+			sections[State::currentSection]->translatedProgram = sections[State::currentSection]->translatedProgram + num + ((State::locationCounter - State::ORG) % 16 == 0 ? "\n" : " ");
 		}
 
 	}
@@ -38,32 +38,32 @@ BaseProcessor::BaseProcessor()
 	commonOpcodes["REGIND"] = "010";
 	commonOpcodes["REGINDOFF"] = "111";
 	
-	commonOpcodes["R0"] = "00000";
-	commonOpcodes["R1"] = "00001";
-	commonOpcodes["R2"] = "00010";
-	commonOpcodes["R3"] = "00011";
-	commonOpcodes["R4"] = "00100";
-	commonOpcodes["R5"] = "00101";
-	commonOpcodes["R6"] = "00110";
-	commonOpcodes["R7"] = "00111";
-	commonOpcodes["R8"] = "01000";
-	commonOpcodes["R9"] = "01001";
-	commonOpcodes["R10"] = "01010";
-	commonOpcodes["R11"] = "01011";
-	commonOpcodes["R12"] = "01100";
-	commonOpcodes["R13"] = "01101";
-	commonOpcodes["R14"] = "01110";
-	commonOpcodes["R15"] = "01111";
-	commonOpcodes["SP"] = "10000";
-	commonOpcodes["PC"] = "10001";
+	commonOpcodes["r0"] = "00000";
+	commonOpcodes["r1"] = "00001";
+	commonOpcodes["r2"] = "00010";
+	commonOpcodes["r3"] = "00011";
+	commonOpcodes["r4"] = "00100";
+	commonOpcodes["r5"] = "00101";
+	commonOpcodes["r6"] = "00110";
+	commonOpcodes["r7"] = "00111";
+	commonOpcodes["r8"] = "01000";
+	commonOpcodes["r9"] = "01001";
+	commonOpcodes["r10"] = "01010";
+	commonOpcodes["r11"] = "01011";
+	commonOpcodes["r12"] = "01100";
+	commonOpcodes["r13"] = "01101";
+	commonOpcodes["r14"] = "01110";
+	commonOpcodes["r15"] = "01111";
+	commonOpcodes["sp"] = "10000";
+	commonOpcodes["pc"] = "10001";
 
-	commonOpcodes["DD"] = "000";
-	commonOpcodes["UW"] = "001";
-	commonOpcodes["SW"] = "101";
-	commonOpcodes["UB"] = "011";
-	commonOpcodes["SB"] = "111";
-	commonOpcodes["B"] = "011";
-	commonOpcodes["W"] = "001";
+	commonOpcodes["dd"] = "000";
+	commonOpcodes["uw"] = "001";
+	commonOpcodes["sw"] = "101";
+	commonOpcodes["ub"] = "011";
+	commonOpcodes["sb"] = "111";
+	commonOpcodes["b"] = "011";
+	commonOpcodes["w"] = "001";
 }
 
 

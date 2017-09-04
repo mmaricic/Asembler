@@ -5,7 +5,7 @@ void SymbolProcessor::resolvePassOne(string opcode)
 {
 	string code = Parser::getNextWord(line);
 
-	if (code != "DEF")
+	if (code != "def")
 		throw HandleError("Undefined");
 
 	vector<string> expression = Parser::getArguments(line);
@@ -13,7 +13,7 @@ void SymbolProcessor::resolvePassOne(string opcode)
 		throw HandleError("Constant symbol definition can have only 1 paramater");
 
 	int section = -1;
-	int result = ExpressionHandler::calculate(expression[0], section);
+ 	int result = ExpressionHandler::calculate(expression[0], section);
 	symTable->addSymbol(opcode, section, result);
 }
 

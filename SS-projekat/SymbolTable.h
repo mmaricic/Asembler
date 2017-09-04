@@ -19,12 +19,13 @@ class SymbolTable
 		TableRow* newsym = new TableRow("SEG", 0, "UND", 0, 0, 0, "");
 		symbols.insert(make_pair("UND", newsym));
 		sortedSymbols.insert(make_pair(0, newsym));
+		dollarSymbol = new TableRow(string("SYM"), -1, string("$"), 0, 0, State::dollar, string(""));
 	}
 	SymbolTable(SymbolTable const&) = delete;
 
 public:
 	static SymbolTable* getInstance();
-
+	TableRow* dollarSymbol;
 	TableRow* getSymbol(string key);
 	void addLabels(vector<string> labels);
 	void addSymbol(string key, int section, int value);

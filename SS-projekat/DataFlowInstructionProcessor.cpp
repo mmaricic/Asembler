@@ -3,16 +3,16 @@
 
 DataFlowInstructionProcessor::DataFlowInstructionProcessor()
 {
-	dataFlowOpcodes.insert(make_pair("INT", INT));
-	dataFlowOpcodes.insert(make_pair("RET",RET));
-	dataFlowOpcodes.insert(make_pair("JMP", UNCONDITIONAL));
-	dataFlowOpcodes.insert(make_pair("CALL", UNCONDITIONAL));
-	dataFlowOpcodes.insert(make_pair("JZ", CONDITIONAL));
-	dataFlowOpcodes.insert(make_pair("JNZ", CONDITIONAL));
-	dataFlowOpcodes.insert(make_pair("JGZ", CONDITIONAL));
-	dataFlowOpcodes.insert(make_pair("JGEZ", CONDITIONAL));
-	dataFlowOpcodes.insert(make_pair("JLZ", CONDITIONAL));
-	dataFlowOpcodes.insert(make_pair("JLEZ", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("int", INT));
+	dataFlowOpcodes.insert(make_pair("ret",RET));
+	dataFlowOpcodes.insert(make_pair("jmp", UNCONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("call", UNCONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("jz", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("knz", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("jgz", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("jgez", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("jlz", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("jlez", CONDITIONAL));
 }
 
 void DataFlowInstructionProcessor::resolvePassOne(string opcode)
@@ -40,7 +40,7 @@ void DataFlowInstructionProcessor::resolvePassOne(string opcode)
 		break;
 	case UNCONDITIONAL:
 		if (args.size() != 1)
-			throw HandleError("Unconditional sata flow instructions must have exactly 1 argument");
+			throw HandleError("Unconditional data flow instructions must have exactly 1 argument");
 		calculateLC(args[0], opcode);
 		break;
 	}
@@ -50,7 +50,7 @@ void DataFlowInstructionProcessor::resolvePassTwo(string opcode)
 {
 	string objProgram;
 
-	if (opcode == "RET") {
+	if (opcode == "ret") {
 		objProgram = string(24, '0');
 		printInsToSection(objProgram, opcode);
 		return;

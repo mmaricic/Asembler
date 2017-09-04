@@ -12,16 +12,16 @@ void DirectiveProcessor::handleSection(string opcode)
 	string section = getSectionType(opcode);
 	string flags = State::wasORG? "O": "";
 	//UBACI FLEGOVE i za ORG
-	if (section == ".TEXT") {
+	if (section == ".text") {
 		flags += "APX";
 	}
-	else if (section == ".DATA") {
+	else if (section == ".data") {
 		flags += "APW";
 	}
-	else if (section == ".RODATA") {
+	else if (section == ".rodata") {
 		flags += "AP";
 	}
-	else if (section == ".BSS") {
+	else if (section == ".bss") {
 		flags += "AW";
 	}
 	else
@@ -36,7 +36,7 @@ void DirectiveProcessor::handleSection(string opcode)
 
 void DirectiveProcessor::resolvePassOne(string opcode)
 {
-	if (opcode == ".GLOBAL") {
+	if (opcode == ".global") {
 		if (State::wasORG)
 			throw HandleError("After ORG can only be beginning of a section");
 
@@ -48,7 +48,7 @@ void DirectiveProcessor::resolvePassOne(string opcode)
 		State::wasORG = false;
 	}
 	//SREDI ORG
-	else if (opcode == "ORG") {
+	else if (opcode == "org") {
 		if (State::wasORG)
 			throw HandleError("After ORG can only be beginning of a section");
 		vector<string> args = Parser::getArguments(line);
@@ -67,11 +67,12 @@ void DirectiveProcessor::resolvePassOne(string opcode)
 
 void DirectiveProcessor::resolvePassTwo(string opcode)
 {
-	if (opcode != "ORG" && opcode != ".GLOBAL") {
+	if (opcode != "org" && opcode != ".global") {
 		TableRow* section = symTable->getSymbol(opcode);
 		if (section == nullptr)
 			throw HandleError("Unexpected error");
 		State::locationCounter = section->startAddress;
 		State::currentSection = section->name;
+		State::ORG = section->startAddress;
 	}
 }

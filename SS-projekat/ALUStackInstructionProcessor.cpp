@@ -7,9 +7,9 @@ void ALUStackInstructionProcessor::resolvePassOne(string opcode)
 	if (State::currentSection == "")
 		throw HandleError("Invalid code - this must be inside of a section");
 	vector<string> args = Parser::getArguments(line);
-	if ((opcode == "PUSH" || opcode == "POP") && args.size() != 1)
+	if ((opcode == "push" || opcode == "pop") && args.size() != 1)
 			throw HandleError("Stack operations must have exactly 1 operand");
-	else if(opcode != "PUSH" && opcode != "POP" && args.size() != 3)
+	else if(opcode != "push" && opcode != "pop" && args.size() != 3)
 		throw HandleError("ALU operations must have exactly 3 operands");
 	for (string arg : args) 
 		if (addressMode(arg) != REGDIR)

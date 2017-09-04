@@ -70,8 +70,8 @@ vector<string> Parser::getArguments(string & line)
 
 bool Parser::isEnd(string line)
 {
-	transform(line.begin(), line.end(), line.begin(), ::toupper);
-	regex reg("[ \t]*(\\.END)[ \t]*");
+	transform(line.begin(), line.end(), line.begin(), ::tolower);
+	regex reg("[ \t]*(\\.end)[ \t]*");
 	return regex_match(line, reg);
 }
 

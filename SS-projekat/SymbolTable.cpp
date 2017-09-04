@@ -1,4 +1,5 @@
 #include "SymbolTable.h"
+#include "MainProcessor.h"
 
 unsigned int SymbolTable::Ordinal = 0;
 SymbolTable* SymbolTable::instance = nullptr;
@@ -17,8 +18,13 @@ TableRow * SymbolTable::getSymbol(string key)
 	if (symbols.count(key) > 0)
 		return symbols[key];
 
-	if (key == "$")
-		return &TableRow(string("SYM"), -1, string("$"), symbols.find(State::currentSection)->second->ordinal, 0, State::dollar, string(""));
+	if (key == "$") {
+		if (State::currentSection == "")
+			return nullptr;
+		dollarSymbol->value = State::dollar;
+		dollarSymbol->section = symbols.find(State::currentSection)->second->ordinal;
+		return dollarSymbol;
+	}
 
 	return nullptr;
 
@@ -28,15 +34,20 @@ void SymbolTable::addLabels(vector<string> labels)
 {
 	TableRow* section = symbols.find(State::currentSection)->second;
 	for (string lab : labels) {
+		if (MainProcessor::isOpcode(lab))
+			throw HandleError("Keyword can't be used as a label");
 		TableRow* newsym = new TableRow(string("SYM"), lab, section->ordinal);
 		ret = symbols.insert(make_pair(lab, newsym));
 		if (ret.second == false) {
 			delete newsym;
 			if (ret.first->second->flags != "G")
 				throw HandleError("Label " + lab + " is already defined");
+			else
+				ret.first->second->section = section->ordinal;
 		}
 		else {
 			newsym->setOrdinal(++Ordinal);
+
 			sortedSymbols.insert(make_pair(Ordinal, newsym));
 		}
 		ret.first->second->value = State::locationCounter - section->startAddress;
@@ -45,6 +56,8 @@ void SymbolTable::addLabels(vector<string> labels)
 
 void SymbolTable::addSymbol(string key, int section, int value)
 {
+	if (MainProcessor::isOpcode(key))
+		throw HandleError("Keyword can't be used as a symbol name");
 	TableRow* newsym = new TableRow(string("SYM"), key, section);
 	ret = symbols.insert(make_pair(key, newsym));
 	if (ret.second == false) {
@@ -62,6 +75,8 @@ void SymbolTable::addSymbol(string key, int section, int value)
 void SymbolTable::addGlobal(vector<string> keys)
 {
 	for (string key : keys) {
+		if (MainProcessor::isOpcode(key))
+			throw HandleError("Keyword can't be used as a global");
 		TableRow* newsym = new TableRow(string("SYM"), key, 0);
 		ret = symbols.insert(make_pair(key, newsym));
 		if (ret.second == false) {
@@ -100,7 +115,7 @@ TableRow * SymbolTable::getSection(int ordinal)
 {
 	if (sortedSymbols.count(ordinal) > 0) {
 		TableRow* res = sortedSymbols[ordinal];
-		if (res->type == "SYM")
+		if (res->type == "SYM" && res->flags != "G")
 			throw HandleError("Symbol must be section");
 		return res;
 	}
@@ -118,6 +133,7 @@ void SymbolTable::closeSection()
 
 SymbolTable::~SymbolTable()
 {
+	delete dollarSymbol;
 	for (auto itr = symbols.begin(); itr != symbols.end(); itr++) {
 		if(itr->second != nullptr)
 			delete itr->second;

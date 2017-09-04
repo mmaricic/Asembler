@@ -4,9 +4,9 @@
 
 DataProcessor::DataProcessor()
 {
-	dataSize.insert(make_pair("DD", 4));
-	dataSize.insert(make_pair("DW", 2));
-	dataSize.insert(make_pair("DB", 1));
+	dataSize.insert(make_pair("dd", 4));
+	dataSize.insert(make_pair("dw", 2));
+	dataSize.insert(make_pair("db", 1));
 }
 
 
@@ -17,22 +17,19 @@ void DataProcessor::resolvePassOne(string opcode)
 	vector<string> args = Parser::getArguments(line);
 	int number = 0;
 	int num = 0;
-	bool dup = false;
 	if (args.size() == 0)
 		throw HandleError("Definition of data must have initial value");
 	for (string arg : args) {
-		auto dupPos = arg.find("DUP");
+		auto dupPos = arg.find("dup");
 		if (dupPos == string::npos)
-			if (dup)
-				number += num;
-			else
+			
 			number++;
 		else {
 			num = ExpressionHandler::calculateConstant(arg.substr(0, dupPos));
 			if (num <= 0)
 				throw HandleError("Number of repetition must be positive number greater then 0!");
 			number += num;
-			dup = true;
+			
 		}
 	}
 	number = number * dataSize[opcode];
@@ -46,17 +43,15 @@ void DataProcessor::resolvePassTwo(string opcode)
 	bool dup = false;
 	int number = 1;
 	for (string arg : args) {
-		auto dupPos = arg.find("DUP");
+		int number = 1;
+		auto dupPos = arg.find("dup");
 		if (dupPos != string::npos)
 		{
 			number = ExpressionHandler::calculateConstant(arg.substr(0, dupPos));
-			dup = true;
 			expression = arg.substr(dupPos + 3);
 		}
 		else {
 			expression = arg;
-			if(!dup)
-				number = 1;
 		}
 		int relFor = -1;
 		int result = 0;

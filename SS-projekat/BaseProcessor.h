@@ -23,6 +23,7 @@ public:
 	virtual void resolvePassOne(string opcode) =0;
 	virtual void resolvePassTwo(string opcode) = 0;
 	
+	
 	BaseProcessor();
 	virtual ~BaseProcessor();
 };

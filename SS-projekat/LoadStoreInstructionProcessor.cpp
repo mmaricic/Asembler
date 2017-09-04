@@ -6,16 +6,16 @@ string LoadStoreInstructionProcessor::getDataType(string& opcode)
 {
 	string dataType;
 
-	if (opcode.find("LOAD") != string::npos) {
+	if (opcode.find("load") != string::npos) {
 		dataType = opcode.substr(4);
-		opcode = "LOAD";
+		opcode = "load";
 	}
 	else {
 		dataType = opcode.substr(5);
-		opcode = "STORE";
+		opcode = "store";
 	}
 	if (dataType == "")
-		dataType = "DD";
+		dataType = "dd";
 	return dataType;
 }
 

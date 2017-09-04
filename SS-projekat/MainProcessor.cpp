@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 
+map<string, BaseProcessor*> MainProcessor::handlers;
 
 MainProcessor::MainProcessor()
 {
@@ -12,57 +13,57 @@ MainProcessor::MainProcessor()
 	LoadStoreInstructionProcessor* loadStore = new LoadStoreInstructionProcessor();
 	SymbolProcessor* symbol = new SymbolProcessor();
 
-	handlers.insert(make_pair("INT", dataFlow));
-	handlers.insert(make_pair("JMP", dataFlow));
-	handlers.insert(make_pair("CALL", dataFlow));
-	handlers.insert(make_pair("RET", dataFlow));
-	handlers.insert(make_pair("JZ", dataFlow));
-	handlers.insert(make_pair("JNZ", dataFlow));
-	handlers.insert(make_pair("JGZ", dataFlow));
-	handlers.insert(make_pair("JGEZ", dataFlow));
-	handlers.insert(make_pair("JLZ", dataFlow));
-	handlers.insert(make_pair("JLEZ", dataFlow));
-	handlers.insert(make_pair("LOAD", loadStore));
-	handlers.insert(make_pair("LOADUB", loadStore));
-	handlers.insert(make_pair("LOADSB", loadStore));
-	handlers.insert(make_pair("LOADUW", loadStore));
-	handlers.insert(make_pair("LOADSW", loadStore));
-	handlers.insert(make_pair("STORE", loadStore));
-	handlers.insert(make_pair("STOREB", loadStore));
-	handlers.insert(make_pair("STOREW", loadStore));
-	handlers.insert(make_pair("PUSH", ALU));
-	handlers.insert(make_pair("POP", ALU));
-	handlers.insert(make_pair("ADD", ALU));
-	handlers.insert(make_pair("SUB", ALU));
-	handlers.insert(make_pair("MUL", ALU));
-	handlers.insert(make_pair("DIV", ALU));
-	handlers.insert(make_pair("MOD", ALU));
-	handlers.insert(make_pair("AND", ALU));
-	handlers.insert(make_pair("OR", ALU));
-	handlers.insert(make_pair("XOR", ALU));
-	handlers.insert(make_pair("NOT", ALU));
-	handlers.insert(make_pair("ASL", ALU));
-	handlers.insert(make_pair("ASR", ALU));
-	handlers.insert(make_pair("DB", data));
-	handlers.insert(make_pair("DD", data));
-	handlers.insert(make_pair("DW", data));
-	handlers.insert(make_pair("ORG", directive));
-	handlers.insert(make_pair(".GLOBAL", directive));
-	handlers.insert(make_pair(".TEXT", directive));
-	handlers.insert(make_pair(".DATA", directive));
-	handlers.insert(make_pair(".RODATA", directive));
-	handlers.insert(make_pair(".BSS", directive));
+	handlers.insert(make_pair("int", dataFlow));
+	handlers.insert(make_pair("jmp", dataFlow));
+	handlers.insert(make_pair("call", dataFlow));
+	handlers.insert(make_pair("ret", dataFlow));
+	handlers.insert(make_pair("jz", dataFlow));
+	handlers.insert(make_pair("jnz", dataFlow));
+	handlers.insert(make_pair("jgz", dataFlow));
+	handlers.insert(make_pair("jgez", dataFlow));
+	handlers.insert(make_pair("jlz", dataFlow));
+	handlers.insert(make_pair("jlez", dataFlow));
+	handlers.insert(make_pair("load", loadStore));
+	handlers.insert(make_pair("loadub", loadStore));
+	handlers.insert(make_pair("loadsb", loadStore));
+	handlers.insert(make_pair("loaduw", loadStore));
+	handlers.insert(make_pair("loadsw", loadStore));
+	handlers.insert(make_pair("store", loadStore));
+	handlers.insert(make_pair("storeb", loadStore));
+	handlers.insert(make_pair("storew", loadStore));
+	handlers.insert(make_pair("push", ALU));
+	handlers.insert(make_pair("pop", ALU));
+	handlers.insert(make_pair("add", ALU));
+	handlers.insert(make_pair("sub", ALU));
+	handlers.insert(make_pair("mul", ALU));
+	handlers.insert(make_pair("div", ALU));
+	handlers.insert(make_pair("mod", ALU));
+	handlers.insert(make_pair("and", ALU));
+	handlers.insert(make_pair("or", ALU));
+	handlers.insert(make_pair("xor", ALU));
+	handlers.insert(make_pair("not", ALU));
+	handlers.insert(make_pair("asl", ALU));
+	handlers.insert(make_pair("asr", ALU));
+	handlers.insert(make_pair("db", data));
+	handlers.insert(make_pair("dd", data));
+	handlers.insert(make_pair("dw", data));
+	handlers.insert(make_pair("org", directive));
+	handlers.insert(make_pair(".global", directive));
+	handlers.insert(make_pair(".text", directive));
+	handlers.insert(make_pair(".data", directive));
+	handlers.insert(make_pair(".rodata", directive));
+	handlers.insert(make_pair(".bss", directive));
 	handlers.insert(make_pair("SymbolHandler", new SymbolProcessor()));
 }
 
 
 MainProcessor::~MainProcessor()
 {
-	delete handlers["INT"];
-	delete handlers["LOAD"];
-	delete handlers["PUSH"];
-	delete handlers["DB"];
-	delete handlers["ORG"];
+	delete handlers["int"];
+	delete handlers["load"];
+	delete handlers["push"];
+	delete handlers["db"];
+	delete handlers["org"];
 	delete handlers["SymbolHandler"];
 }
 
@@ -77,7 +78,7 @@ void MainProcessor::resolvePassOne(string opcode)
 			if (line.size() == 0)
 				continue;
 			State::dollar = State::locationCounter;
-			transform(line.begin(), line.end(), line.begin(), ::toupper);
+			transform(line.begin(), line.end(), line.begin(), ::tolower);
 			Parser::removeComments(line);
 			vector<string> labels = Parser::getLabels(line);
 			if (labels.size() != 0)
@@ -114,6 +115,7 @@ void MainProcessor::resolvePassOne(string opcode)
 	State::lineNumber = 0;
 	State::wasORG = false;
 	State::currentSection = "";
+	State::ORG = 0;
 }
 
 void MainProcessor::resolvePassTwo(string opcode)
@@ -126,7 +128,7 @@ void MainProcessor::resolvePassTwo(string opcode)
 			State::lineNumber++;
 			if (line.size() == 0)
 				continue;
-			transform(line.begin(), line.end(), line.begin(), ::toupper);
+			transform(line.begin(), line.end(), line.begin(), ::tolower);
 			Parser::removeComments(line);
 			Parser::getLabels(line);
 			if (line.size() == 0)
@@ -162,10 +164,11 @@ void MainProcessor::print(string filename)
 	myfile << "#TabelaSimbola" << endl;
 	map<int, TableRow*>* all = symTable->getAllElements();
 	std::stringstream stream;
-	
+	vector<string> printIt;
 	string exp = stream.str();
 	for (map<int, TableRow*>::iterator it = all->begin(); it != all->end(); ++it) {
 		if ((*it).second->type == "SEG") {
+			printIt.push_back((*it).second->name);
 			myfile << (*it).second->type << " " << (*it).second->ordinal << " " << (*it).second->name << " " << (*it).second->section << " 0x";
 			stream << setfill('0') << setw(2) << std::hex << (*it).second->startAddress;
 			myfile << stream.str() << " 0x"; 
@@ -183,17 +186,17 @@ void MainProcessor::print(string filename)
 	}
 
 	myfile << endl;
-	for (map<int, TableRow*>::iterator it = all->begin(); it != all->end(); ++it) {
-		if ((*it).second->type == "SYM" || sections.count((*it).second->name) == 0)
+	for (string name:printIt) {
+		if (sections.count(name) == 0)
 			continue;
-		Section* curr = sections[(*it).second->name];
-		myfile << "#rel" << (*it).second->name << endl;
+		Section* curr = sections[name];
+		myfile << "#rel" << name << endl;
 		for (reallocation rel : curr->reallocations) {
 			stream << setfill('0') << setw(4) << std::hex << rel.offset;
 			myfile << "0x" << stream.str() << " " << (char)rel.type << " " << rel.relativeTo << endl;
 			stream.str("");
 		}
-		myfile << "<" << (*it).second->name << ">" << endl;
+		myfile << "<" << name << ">" << endl;
 		myfile << curr->translatedProgram << endl << endl;
 	}
 	myfile << "#end";

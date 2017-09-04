@@ -28,7 +28,7 @@ void InstructionProcessor::calculateLC(string arg, string opcode)
 	switch (type)
 	{
 	case INTERMEDIATE:
-		if (opcode != "LOAD")
+		if (opcode != "load")
 			throw HandleError("Instruction can't use intermediate address mode");
 		else
 			State::locationCounter += 8;
@@ -50,10 +50,10 @@ void InstructionProcessor::printInsToSection(const string& objProgram, const str
 	if (sections.count(State::currentSection) == 0)
 		sections.insert(make_pair(State::currentSection, new Section()));
 	State::locationCounter++;
-	sections[State::currentSection]->translatedProgram = sections[State::currentSection]->translatedProgram + instructionOpcodes[opcode] + (State::locationCounter % 16 == 0 ? "\n" : " ");
+	sections[State::currentSection]->translatedProgram = sections[State::currentSection]->translatedProgram + instructionOpcodes[opcode] + ((State::locationCounter - State::ORG) % 16 == 0 ? "\n" : " ");
 	for (string byte : bytes) {
 		State::locationCounter++;
-		sections[State::currentSection]->translatedProgram = sections[State::currentSection]->translatedProgram + byte + (State::locationCounter % 16 == 0 ? "\n" : " ");
+		sections[State::currentSection]->translatedProgram = sections[State::currentSection]->translatedProgram + byte + ((State::locationCounter - State::ORG) % 16 == 0 ? "\n" : " ");
 	}
 	
 }
@@ -75,7 +75,7 @@ string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& se
 	{
 		bytes8 = false;
 		auto strBegin = arg.find_first_not_of("[ \t");
-		auto strEnd = arg.find_last_not_of("[ \t");
+		auto strEnd = arg.find_last_not_of("] \t");
 		const auto strRange = strEnd - strBegin + 1;
 		reg0 = commonOpcodes[arg.substr(strBegin, strRange)];
 		break;
@@ -96,7 +96,7 @@ string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& se
 			if (ExpressionHandler::isNumber(argument, num)) {
 				if (elem != nullptr) {
 					if (elem->section != -1) {
-						if (symTable->getSection(elem->section)->flags.find('O') != string::npos)
+						if (symTable->getSymbol(State::currentSection)->flags.find('O') != string::npos)
 							secondBytes = num - 8 - State::locationCounter;
 						else {
 							secondBytes = elem->value + symTable->getSection(elem->section)->startAddress - 4;
@@ -123,12 +123,12 @@ string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& se
 				if (elem->section == sec->ordinal)
 					secondBytes = elem->value + sec->startAddress - 8 - State::locationCounter;
 				else {
-					secondBytes = elem->value + symTable->getSection(elem->section)->startAddress - 4;
+					secondBytes = (elem->flags == "G" ? 0 :elem->value + symTable->getSection(elem->section)->startAddress) - 4;
 					relType = 'R';
 					relFor = elem->flags == "G" ? elem->ordinal : elem->section;
 				}
 			}
-			reg0 = commonOpcodes["PC"];
+			reg0 = commonOpcodes["pc"];
 		}
 		else {
 			int strBegin = arg.find_first_of("+-");
@@ -137,9 +137,10 @@ string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& se
 			secondBytes = ExpressionHandler::calculate(arg.substr(strBegin, strRange), relFor);
 			strBegin = arg.find_first_not_of("[ \t");
 			strEnd = arg.find_first_of("+- \t", strBegin);
-			strRange = strEnd - strBegin + 1;
-			reg0 = arg.substr(strBegin, strRange);
+			strRange = strEnd - strBegin;
+			reg0 = commonOpcodes[arg.substr(strBegin, strRange)];
 		}
+
 		break;
 	
 	case MEMDIR:
@@ -154,33 +155,33 @@ string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& se
 
 InstructionProcessor::InstructionProcessor()
 {
-	instructionOpcodes.insert(make_pair("PUSH","20"));
-	instructionOpcodes.insert(make_pair("POP", "21"));
-	instructionOpcodes.insert(make_pair("ADD", "30"));
-	instructionOpcodes.insert(make_pair("SUB", "31"));
-	instructionOpcodes.insert(make_pair("MUL", "32"));
-	instructionOpcodes.insert(make_pair("DIV", "33"));
-	instructionOpcodes.insert(make_pair("MOD", "34"));
-	instructionOpcodes.insert(make_pair("AND", "35"));
-	instructionOpcodes.insert(make_pair("OR", "36"));
-	instructionOpcodes.insert(make_pair("XOR", "37"));
-	instructionOpcodes.insert(make_pair("NOT", "38"));
-	instructionOpcodes.insert(make_pair("ASL", "39"));
-	instructionOpcodes.insert(make_pair("ASR", "3A"));
+	instructionOpcodes.insert(make_pair("push","20"));
+	instructionOpcodes.insert(make_pair("pop", "21"));
+	instructionOpcodes.insert(make_pair("add", "30"));
+	instructionOpcodes.insert(make_pair("sub", "31"));
+	instructionOpcodes.insert(make_pair("mul", "32"));
+	instructionOpcodes.insert(make_pair("div", "33"));
+	instructionOpcodes.insert(make_pair("mod", "34"));
+	instructionOpcodes.insert(make_pair("and", "35"));
+	instructionOpcodes.insert(make_pair("or", "36"));
+	instructionOpcodes.insert(make_pair("xor", "37"));
+	instructionOpcodes.insert(make_pair("not", "38"));
+	instructionOpcodes.insert(make_pair("asl", "39"));
+	instructionOpcodes.insert(make_pair("asr", "3A"));
 
-	instructionOpcodes.insert(make_pair("INT", "00"));
-	instructionOpcodes.insert(make_pair("RET", "01"));
-	instructionOpcodes.insert(make_pair("JMP", "02"));
-	instructionOpcodes.insert(make_pair("CALL", "03"));
-	instructionOpcodes.insert(make_pair("JZ", "04"));
-	instructionOpcodes.insert(make_pair("JNZ", "05"));
-	instructionOpcodes.insert(make_pair("JGZ", "06"));
-	instructionOpcodes.insert(make_pair("JGEZ", "07"));
-	instructionOpcodes.insert(make_pair("JLZ", "08"));
-	instructionOpcodes.insert(make_pair("JLEZ", "09"));
+	instructionOpcodes.insert(make_pair("int", "00"));
+	instructionOpcodes.insert(make_pair("ret", "01"));
+	instructionOpcodes.insert(make_pair("jmp", "02"));
+	instructionOpcodes.insert(make_pair("call", "03"));
+	instructionOpcodes.insert(make_pair("jz", "04"));
+	instructionOpcodes.insert(make_pair("jnz", "05"));
+	instructionOpcodes.insert(make_pair("jgz", "06"));
+	instructionOpcodes.insert(make_pair("jgez", "07"));
+	instructionOpcodes.insert(make_pair("jlz", "08"));
+	instructionOpcodes.insert(make_pair("jlez", "09"));
 
-	instructionOpcodes.insert(make_pair("LOAD", "10"));
-	instructionOpcodes.insert(make_pair("STORE", "11"));
+	instructionOpcodes.insert(make_pair("load", "10"));
+	instructionOpcodes.insert(make_pair("store", "11"));
 }
 
 string InstructionProcessor::addressModeToString(AddressType adr)

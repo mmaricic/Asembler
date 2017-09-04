@@ -27,7 +27,7 @@ class ExpressionHandler
 	static bool firstPassCalculation(node* root);
 	static node* infixToPostfix(string infix);
 	static bool validOrder(int current, int before);
-	static int subtractSymbols(node* left, node* right);
+	static int calculateSymbols(node* left, node* right, bool subtract);
 public:
 	
 	static vector<string> IntToHex(int num, int width);
