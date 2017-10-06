@@ -3,17 +3,18 @@
 
 int main(int argc, char *argv[]) {
 	try {
-		if (argc != 3) {
+		if (argc != 2) {
 			cout << "Invalid number of command line arguments!";
 			return -1;
 		}
-		string inputFile = argv[1];
-		string otputFile = argv[2];
-		MainProcessor handler;
-		handler.resolvePassOne(inputFile);
-		handler.resolvePassTwo(inputFile);
-		handler.print(otputFile);
-
+			string inputFile = argv[1];
+			auto pos = inputFile.find_last_of('.');
+			string outputFile = inputFile.substr(0, pos) + "Obj" + (pos == string::npos ? "" : inputFile.substr(pos));
+			MainProcessor handler;
+			handler.resolvePassOne(inputFile);
+			handler.resolvePassTwo(inputFile);
+			handler.print(outputFile);
+			
 		return 0;
 	}
 	catch (HandleError e) {

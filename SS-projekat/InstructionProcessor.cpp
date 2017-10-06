@@ -2,12 +2,12 @@
 
 AddressType InstructionProcessor::addressMode(string arg)
 {
-	if (commonOpcodes.count(arg) == 1)
+	if (commonOpcodes.count(arg) == 1 && commonOpcodes[arg].length() == 5)
 		return REGDIR;
 	if (arg[0] == '#') {
 		return INTERMEDIATE;
 	}
-	if (arg[0] == '$') {
+	if (arg[0] == '$' && (isalnum(arg[1]) || arg[1] == '_' || arg[1] == '$')) {
 		return REGINDOFF;
 	}
 	if (arg[0] == '[' && arg[arg.size() - 1] == ']') {
@@ -87,19 +87,19 @@ string InstructionProcessor::bitsForAddresPart(bool& bytes8, string arg, int& se
 	}
 	case REGINDOFF:
 		if (arg[0] == '$') {
-			int strBegin = arg.find_first_not_of("$ \t");
-			int strEnd = arg.find_last_not_of("$ \t");
+			int strBegin = arg.find_first_not_of(" \t",1);
+			int strEnd = arg.find_last_not_of(" \t");
 			int strRange = strEnd - strBegin + 1;
 			string argument = arg.substr(strBegin, strRange);
 			int num;
 			TableRow* elem = symTable->getSymbol(argument);
 			if (ExpressionHandler::isNumber(argument, num)) {
-				if (elem != nullptr) {
+				if (elem != nullptr) { //element je ili u orgovanoj ili apsolutni simbol
 					if (elem->section != -1) {
 						if (symTable->getSymbol(State::currentSection)->flags.find('O') != string::npos)
 							secondBytes = num - 8 - State::locationCounter;
 						else {
-							secondBytes = elem->value + symTable->getSection(elem->section)->startAddress - 4;
+							secondBytes = (elem->flags == "G" ?0 : 0) +  - 4;
 							relType = 'R';
 							relFor = elem->flags == "G" ? elem->ordinal : elem->section;
 						}

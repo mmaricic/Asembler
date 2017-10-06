@@ -128,6 +128,7 @@ void MainProcessor::resolvePassTwo(string opcode)
 			State::lineNumber++;
 			if (line.size() == 0)
 				continue;
+			State::dollar = State::locationCounter;
 			transform(line.begin(), line.end(), line.begin(), ::tolower);
 			Parser::removeComments(line);
 			Parser::getLabels(line);

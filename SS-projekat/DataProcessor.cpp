@@ -49,9 +49,11 @@ void DataProcessor::resolvePassTwo(string opcode)
 		{
 			number = ExpressionHandler::calculateConstant(arg.substr(0, dupPos));
 			expression = arg.substr(dupPos + 3);
+			dup = true;
 		}
 		else {
 			expression = arg;
+			dup = false;
 		}
 		int relFor = -1;
 		int result = 0;

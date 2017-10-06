@@ -13,16 +13,16 @@ void DirectiveProcessor::handleSection(string opcode)
 	string flags = State::wasORG? "O": "";
 	//UBACI FLEGOVE i za ORG
 	if (section == ".text") {
-		flags += "APX";
+		flags += "RXP";
 	}
 	else if (section == ".data") {
-		flags += "APW";
+		flags += "RWP";
 	}
 	else if (section == ".rodata") {
-		flags += "AP";
+		flags += "RP";
 	}
 	else if (section == ".bss") {
-		flags += "AW";
+		flags += "RW";
 	}
 	else
 		throw HandleError("Invalid section name");

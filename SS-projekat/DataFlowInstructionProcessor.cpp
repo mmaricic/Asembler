@@ -8,7 +8,7 @@ DataFlowInstructionProcessor::DataFlowInstructionProcessor()
 	dataFlowOpcodes.insert(make_pair("jmp", UNCONDITIONAL));
 	dataFlowOpcodes.insert(make_pair("call", UNCONDITIONAL));
 	dataFlowOpcodes.insert(make_pair("jz", CONDITIONAL));
-	dataFlowOpcodes.insert(make_pair("knz", CONDITIONAL));
+	dataFlowOpcodes.insert(make_pair("jnz", CONDITIONAL));
 	dataFlowOpcodes.insert(make_pair("jgz", CONDITIONAL));
 	dataFlowOpcodes.insert(make_pair("jgez", CONDITIONAL));
 	dataFlowOpcodes.insert(make_pair("jlz", CONDITIONAL));

@@ -9,7 +9,9 @@ void ALUStackInstructionProcessor::resolvePassOne(string opcode)
 	vector<string> args = Parser::getArguments(line);
 	if ((opcode == "push" || opcode == "pop") && args.size() != 1)
 			throw HandleError("Stack operations must have exactly 1 operand");
-	else if(opcode != "push" && opcode != "pop" && args.size() != 3)
+	else if (opcode == "not" && args.size() != 2)
+		throw HandleError("NOT instruction must have exactly 2 operands");
+	else if(opcode != "push" && opcode != "pop" && opcode != "not" && args.size() != 3)
 		throw HandleError("ALU operations must have exactly 3 operands");
 	for (string arg : args) 
 		if (addressMode(arg) != REGDIR)

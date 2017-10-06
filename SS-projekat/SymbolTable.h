@@ -14,7 +14,7 @@ class SymbolTable
 	map<string, TableRow*> symbols;
 	map<int, TableRow*> sortedSymbols;
 	pair<map<string, TableRow*>::iterator, bool> ret;
-	
+	bool isNumber(string val);
 	SymbolTable() {
 		TableRow* newsym = new TableRow("SEG", 0, "UND", 0, 0, 0, "");
 		symbols.insert(make_pair("UND", newsym));

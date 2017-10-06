@@ -15,13 +15,13 @@ SymbolTable * SymbolTable::getInstance()
 
 TableRow * SymbolTable::getSymbol(string key)
 {
-	if (symbols.count(key) > 0)
+	if (symbols.count(key) > 0 && key != "$")
 		return symbols[key];
 
 	if (key == "$") {
 		if (State::currentSection == "")
 			return nullptr;
-		dollarSymbol->value = State::dollar;
+		dollarSymbol->value = State::dollar - symbols.find(State::currentSection)->second->startAddress;
 		dollarSymbol->section = symbols.find(State::currentSection)->second->ordinal;
 		return dollarSymbol;
 	}
@@ -36,6 +36,9 @@ void SymbolTable::addLabels(vector<string> labels)
 	for (string lab : labels) {
 		if (MainProcessor::isOpcode(lab))
 			throw HandleError("Keyword can't be used as a label");
+		if(isNumber(lab))
+			throw HandleError("Number can't be used as a label");
+
 		TableRow* newsym = new TableRow(string("SYM"), lab, section->ordinal);
 		ret = symbols.insert(make_pair(lab, newsym));
 		if (ret.second == false) {
@@ -58,6 +61,9 @@ void SymbolTable::addSymbol(string key, int section, int value)
 {
 	if (MainProcessor::isOpcode(key))
 		throw HandleError("Keyword can't be used as a symbol name");
+	if (isNumber(key))
+		throw HandleError("Number can't be used as a symbol");
+	
 	TableRow* newsym = new TableRow(string("SYM"), key, section);
 	ret = symbols.insert(make_pair(key, newsym));
 	if (ret.second == false) {
@@ -77,6 +83,9 @@ void SymbolTable::addGlobal(vector<string> keys)
 	for (string key : keys) {
 		if (MainProcessor::isOpcode(key))
 			throw HandleError("Keyword can't be used as a global");
+		if (isNumber(key))
+			throw HandleError("Number can't be used as a symbol");
+
 		TableRow* newsym = new TableRow(string("SYM"), key, 0);
 		ret = symbols.insert(make_pair(key, newsym));
 		if (ret.second == false) {
@@ -140,4 +149,32 @@ SymbolTable::~SymbolTable()
 		itr->second = nullptr;
 	}
 	
+}
+
+bool SymbolTable::isNumber(string val){
+	string allowed = "0123456789";
+		int start = 0;
+		if(val[0] == '0'){
+			switch (val[1]) {
+			case 'b': 
+				allowed = "01";
+				start = 2;
+				break;
+			
+			case 'x': 
+				allowed = "0123456789abcdef";
+				start = 2;
+				break;
+			
+			default: 
+				allowed = "01234567";
+				start = 1;
+				break;
+			
+			}
+		}
+			auto pos = val.find_first_not_of(allowed, start);
+			if (pos == string::npos) 
+				return true;
+			return false;
 }

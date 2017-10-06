@@ -172,8 +172,11 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 					operand += ch;
 					int num = 0;
 					bool isNum = isNumber(operand, num);
-					if (!isNum && symTable->getSymbol(operand) == nullptr)
-						throw HandleError("Invalid operand" + operand + " in constant expression!");
+					if (!isNum && symTable->getSymbol(operand) == nullptr) {
+						if (operand == "$")
+							throw HandleError("You can't use symbol $ before section");
+						throw HandleError("Invalid operand \"" + operand + "\" in constant expression!");
+					}
 					else if (!isNum)
 						symbolNum++;
 					node* temp = new node(operand, num);
@@ -321,7 +324,7 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 			for (int j = k; j < positive.size(); j++)
 				newExpression = newExpression + "+" + positive[j]->name;
 
-		for (; k > negative.size(); k++)
+		for (; k < negative.size(); k++)
 			newExpression = newExpression + "-" + negative[k]->name;
 		if (newExpression[0] == '+')
 			newExpression = newExpression.substr(1);
@@ -427,8 +430,11 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 			root->number = root->left->number + root->right->number;
 			if (root->left->symbol == "" || root->right->symbol == "")
 				root->symbol = root->left->symbol + root->right->symbol;
-			else if (root->left->symbol.find("-") != string::npos || root->right->symbol.find("-") != string::npos)
-				calculateSymbols(root->left, root->right, false);
+			else if (root->left->symbol.find("-") != string::npos || root->right->symbol.find("-") != string::npos) {
+				int res = calculateSymbols(root->left, root->right, false);
+				root->number += res;
+				root->symbol = root->left->symbol;
+			}
 			else
 				root->symbol = root->left->symbol + root->symbol + root->right->symbol;
 		}
@@ -437,6 +443,8 @@ node* ExpressionHandler::infixToPostfix(string infix) {
 			root->number = root->left->number - root->right->number;
 			if (root->right->symbol == "")
 				root->symbol = root->left->symbol;
+			else if (root->left->symbol == "")
+				root->symbol += root->right->symbol;
 			else {
 				int res = calculateSymbols(root->left, root->right, true);
 				root->number += res;
